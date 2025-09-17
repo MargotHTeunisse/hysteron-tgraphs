@@ -14,7 +14,7 @@ Scipy 1.13.1
 
 NetworkX 3.3 (*only for graph_analysis.py*)
 
-Pycddlib 2.1.7 (*only for polyhedron_analysis.py*)
+Pycddlib 2.1.8 (*only for polyhedron_analysis.py*)
 
 **Contact information**
 
