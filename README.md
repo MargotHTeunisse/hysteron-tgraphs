@@ -26,4 +26,4 @@ Email: teunisse@physics.leidenuniv.nl
 
 **How to cite**
 
-DOI: 10.5281/zenodo.17142651
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17142651.svg)](https://doi.org/10.5281/zenodo.17142651)
