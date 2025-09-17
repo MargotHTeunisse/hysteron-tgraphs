@@ -23,3 +23,6 @@ For questions please contact:
 Margot Teunisse
 
 Email: teunisse@physics.leidenuniv.nl
+
+**How to cite**
+DOI: 10.5281/zenodo.17142651
