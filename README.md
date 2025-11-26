@@ -30,4 +30,4 @@ Email: teunisse@physics.leidenuniv.nl
 
 **Financial statement**
 This work is supported by ERC-101019474.
-![ERC logo](https://erc.europa.eu/sites/default/files/2025-08/LOGO_ERC-FLAG_EU-no%20text.png)
+![ERC logo](https://erc.europa.eu/sites/default/files/2025-08/LOGO_ERC-FLAG_EU-no%20text.png = 100x)
