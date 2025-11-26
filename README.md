@@ -27,3 +27,7 @@ Email: teunisse@physics.leidenuniv.nl
 **How to cite**
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16920053.svg)](https://doi.org/10.5281/zenodo.16920053)
+
+**Financial statement**
+This work is supported by ERC-101019474.
+![ERC logo](https://erc.europa.eu/sites/default/files/2025-08/LOGO_ERC-FLAG_EU-no%20text.png)
