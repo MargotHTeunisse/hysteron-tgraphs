@@ -1,7 +1,3 @@
-<img src="https://github.com/user-attachments/assets/f53b58e4-7b4c-45b8-a214-631eed5c42bf" width="200"/>
-
-TItCH is a software for analyzing **T**ransition graphs in **I**n**t**eracting **C**ollections of **H**ysterons.
-
 The code in this repository was published in conjunction with the article "Transition Graphs of Interacting Hysterons: Structure, Design, Organisation and Statistics" by Margot H. Teunisse and Martin van Hecke for Royal Society Open Science (2025). 
 
 The notebook 'walkthrough.ipynb' reproduces the results detailed in the article.
