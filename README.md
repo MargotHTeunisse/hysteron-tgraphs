@@ -1,4 +1,4 @@
-The code in this repository is published in conjunction with the article "Transition Graphs of Interacting Hysterons: Structure, Design, Organisation and Statistics" by Margot H. Teunisse and Martin van Hecke for Royal Society Open Science (2025). 
+The code in this repository was published in conjunction with the article "Transition Graphs of Interacting Hysterons: Structure, Design, Organisation and Statistics" by Margot H. Teunisse and Martin van Hecke for Royal Society Open Science (2025). 
 
 The notebook 'walkthrough.ipynb' reproduces the results detailed in the article.
 
@@ -29,5 +29,7 @@ Email: teunisse@physics.leidenuniv.nl
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16920053.svg)](https://doi.org/10.5281/zenodo.16920053)
 
 **Financial statement**
+
 This work is supported by ERC-101019474.
-![ERC logo](https://erc.europa.eu/sites/default/files/2025-08/LOGO_ERC-FLAG_EU-no%20text.png = 100x)
+
+<img src="https://erc.europa.eu/sites/default/files/2025-08/LOGO_ERC-FLAG_EU-no%20text.png" width="200"/>
