@@ -1,8 +1,9 @@
 from model import *
 import numpy as np
 import scipy.special
+from typing import Dict, Tuple
 
-AvalancheForest = dict()
+AvalancheForest = Dict[Tuple[State, int], Tuple[Tuple[int]]]
 
 def make_all_scaffolds(num_hysts:int)-> Iterator[Scaffold]:
     possible_critical_hysterons = {(state, 1-2*sign):tuple(i for i in range(num_hysts) if state[i]==sign) for state in itertools.product([0, 1], repeat=num_hysts) for sign in [0, 1] if sign in state}
@@ -75,8 +76,37 @@ def make_avalanche_forest(scaffold:Scaffold) -> AvalancheForest:
 
     return avalanche_forest
 
-def make_candidate_graphs(scaffold:Scaffold) -> Iterator[Graph]:
-    avalanche_forest = make_avalanche_forest(scaffold)
+def make_avalanche_forest_serial(scaffold:Scaffold) -> AvalancheForest:
+    avalanche_forest = {(state, direction):tuple() for (state, direction) in scaffold}
+
+    for (state, direction) in scaffold:
+        critical_hysteron = scaffold[(state, direction)]
+        queue = [(critical_hysteron,)]
+        while queue:
+            queue_new = []
+            for flipped in queue:
+                transition = Transition(state, flipped)
+
+                #Ensure directions (up/down) alternate by checking the direction of the last flipped hysteron.
+                if not transition.is_loop:
+                    avalanche_forest[(state, direction)] += (flipped,)
+                    final_state = transition.final_state
+                    kappa =  scaffold[(final_state, 1-2*final_state[flipped[-1]])]
+                    queue_new.append(flipped + (kappa,))
+
+            queue = queue_new
+ 
+    return avalanche_forest
+
+def make_candidate_graphs(scaffold:Scaffold, model:str='general') -> Iterator[Graph]:
+
+    mapping =  {
+        'general': make_avalanche_forest,
+        'serial': make_avalanche_forest_serial
+    }
+
+    avalanche_forest = mapping[model](scaffold)
+    print(avalanche_forest)
 
     #Make iterator over all possible combinations of transitions
     keys = [key for key in avalanche_forest]
@@ -99,9 +129,9 @@ def count_scaffolds(num_hysts:int) -> int:
 def count_candidate_graphs(avalanche_forest:AvalancheForest)-> int:
     return np.product([len(avalanche_forest[(state, direction)]) for (state, direction) in avalanche_forest], dtype=np.int64)
 
-def make_all_candidate_graphs(num_hysts:int) -> Iterator[Graph]:
+def make_all_candidate_graphs(num_hysts:int, model:str='general') -> Iterator[Graph]:
     for scaffold in make_all_scaffolds(num_hysts):
-        for graph in make_candidate_graphs(scaffold):
+        for graph in make_candidate_graphs(scaffold, model):
             yield graph
             
 def count_all_candidate_graphs(num_hysts:int) -> int:
