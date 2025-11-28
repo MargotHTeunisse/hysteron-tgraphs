@@ -154,9 +154,9 @@ def make_all_candidate_graphs(num_hysts:int, model:str='general') -> Iterator[Gr
         for graph in make_candidate_graphs(scaffold, model):
             yield graph
             
-def count_all_candidate_graphs(num_hysts:int) -> int:
+def count_all_candidate_graphs(num_hysts:int, model:str='general') -> int:
     total_count = 0
     for scaffold in make_all_scaffolds(num_hysts):
-        avalanche_forest = make_avalanche_forest(scaffold)
+        avalanche_forest = make_avalanche_forest(scaffold, model)
         total_count += count_candidate_graphs(avalanche_forest)
     return total_count
