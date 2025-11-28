@@ -1,6 +1,7 @@
 from model import *
 import numpy as np
 import scipy.special
+import itertools
 from typing import Dict, Tuple
 
 AvalancheForest = Dict[Tuple[State, int], Tuple[Tuple[int]]]
@@ -24,6 +25,20 @@ def make_all_scaffolds(num_hysts:int)-> Iterator[Scaffold]:
         for (state, direction) in combination_of_critical_hysterons:
             scaffold[(state, direction)] = combination_of_critical_hysterons[(state, direction)]
 
+        yield scaffold
+
+def make_all_preisach_scaffolds(num_hysts:int) -> Iterator[Scaffold]:
+    for down_ordering in itertools.permutations(np.arange(num_hysts)):
+        scaffold = Scaffold(num_hysts)
+        for state in itertools.product([0, 1], repeat=num_hysts):
+            #The rightmost hysteron which is in state 0 is critical for each state.
+            if 0 in state:
+                scaffold[(state, 1)] = num_hysts - 1 - state[::-1].index(0)
+            for i in down_ordering:
+                if state[i] == 1: 
+                    scaffold[(state, -1)] = i
+                    break
+                
         yield scaffold
 
 def make_random_scaffold(num_hysts:int) -> Scaffold:
