@@ -106,8 +106,7 @@ def make_candidate_graphs(scaffold:Scaffold, model:str='general') -> Iterator[Gr
     }
 
     avalanche_forest = mapping[model](scaffold)
-    print(avalanche_forest)
-
+    
     #Make iterator over all possible combinations of transitions
     keys = [key for key in avalanche_forest]
     values = [avalanche_forest[key] for key in avalanche_forest]
