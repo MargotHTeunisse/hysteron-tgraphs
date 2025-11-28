@@ -39,6 +39,38 @@ class Constraints():
                 self.equalities[var].append(0)
             self.rhs_eq.append(b)
 
+class PairwiseAdditive(Parametrization):
+    def __init__(self, num_hysts:int):
+        self.num_hysts = num_hysts
+        self.variables = ['u_{}^+'.format(i+1) for i in range(num_hysts)] + ['u_{}^-'.format(i+1) for i in range(num_hysts)] + ['c_{}{}'.format(i+1, j+1) for i in range(num_hysts) for j in range(num_hysts) if i != j]
+
+    def transform(self, state:State, i:int) -> Dict[str, np.float64]:
+        coeffs = {var:0 for var in self.variables}
+        coeffs['u_{}^{}'.format(i+1, ['+', '-'][state[i]])] = 1
+        coeffs.update({'c_{}{}'.format(i+1, k+1): -state[k] for k in range(self.num_hysts) if k != i})
+        return coeffs
+
+    def solve(self, inequalities:Inequalities, constraints:Constraints=None) -> Solution:
+        #Find Chebyshev center.
+        if constraints == None:
+            constraints = Constraints(self.variables)
+
+        A_ub = -np.array([inequalities[var]+constraints.inequalities[var] for var in self.variables]).T
+        A_ub = np.concatenate((np.linalg.norm(A_ub, axis=1)[:, np.newaxis], A_ub), axis=1, dtype=float)
+        A_eq = np.array([constraints.equalities[var] for var in self.variables]).T
+        A_eq = np.insert(A_eq, 0, 0, axis=1)
+        b_ub = -np.array([0]*len(inequalities[self.variables[0]]) + constraints.rhs_ineq)
+        b_eq = constraints.rhs_eq
+        
+        x = optimize.linprog([-1] + [0]*len(self.variables), A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds = [(0, None)] + [(-1, 1)]*len(self.variables))['x']
+        
+        R = x[0]
+        accuracy = int(np.log10(R/np.sqrt(len(self.variables)))//1)
+        #Round solution based on distance to the nearest boundary
+        solution = {var:np.round(val, -accuracy) for (var, val) in zip(self.variables, x[1:])}
+        
+        return solution
+
 #Translation functions between general model and specific parametrizations
 def convert_to_specific_inequalities(switching_field_order:SwitchingFieldOrder, param:Parametrization) -> Inequalities:
     inequalities = {var:[] for var in param.variables}
