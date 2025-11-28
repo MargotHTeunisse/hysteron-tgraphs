@@ -69,6 +69,9 @@ def make_random_graph(num_hysts:int) -> Graph:
     return graph
 
 def make_avalanche_forest(scaffold:Scaffold) -> AvalancheForest:
+    """
+    Makes tree of all avalanches for a given scaffold.
+    """
     avalanche_forest = {(state, direction):tuple() for (state, direction) in scaffold}
     
     for (state, direction) in scaffold:
@@ -91,7 +94,10 @@ def make_avalanche_forest(scaffold:Scaffold) -> AvalancheForest:
 
     return avalanche_forest
 
-def make_avalanche_forest_serial(scaffold:Scaffold) -> AvalancheForest:
+def make_avalanche_forest_antiferro(scaffold:Scaffold) -> AvalancheForest:
+    """
+    Makes tree of all purely antiferro avalanches (i.e., alternating up/down) for a given scaffold.
+    """
     avalanche_forest = {(state, direction):tuple() for (state, direction) in scaffold}
 
     for (state, direction) in scaffold:
@@ -115,12 +121,12 @@ def make_avalanche_forest_serial(scaffold:Scaffold) -> AvalancheForest:
 
 def make_candidate_graphs(scaffold:Scaffold, model:str='general') -> Iterator[Graph]:
 
-    mapping =  {
+    avalanche_forest_mapping =  {
         'general': make_avalanche_forest,
-        'serial': make_avalanche_forest_serial
+        'antiferro': make_avalanche_forest_antiferro
     }
 
-    avalanche_forest = mapping[model](scaffold)
+    avalanche_forest = avalanche_forest_mapping[model](scaffold)
     
     #Make iterator over all possible combinations of transitions
     keys = [key for key in avalanche_forest]
