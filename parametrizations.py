@@ -70,6 +70,28 @@ class PairwiseAdditive(Parametrization):
         solution = {var:np.round(val, -accuracy) for (var, val) in zip(self.variables, x[1:])}
         
         return solution
+    
+class PairwiseAdditiveGlobal(Parametrization):
+    #Parametrization for 'global' coupling, where c_ij = c_j. 
+    def __init__(self, num_hysts:int):
+        self.num_hysts = num_hysts
+        self.variables = ['u_{}^+'.format(i+1) for i in range(num_hysts)] + ['u_{}^-'.format(i+1) for i in range(num_hysts)] + ['c_{}'.format(j+1) for j in range(num_hysts)]
+
+    def transform(self, state:State, i:int) -> Dict[str, np.float64]:
+        coeffs = {var:0 for var in self.variables}
+        coeffs['u_{}^{}'.format(i+1, ['+', '-'][state[i]])] = 1
+        coeffs.update({'c_{}'.format(k+1): -state[k] for k in range(self.num_hysts) if k != i})
+        return coeffs
+        
+    def generate_constraints_antiferro(self) -> Constraints:
+        #Generate constraints such that all coupling is antiferromagnetic; we often look at coupling in series (global + antiferro), so useful to have a function for this. 
+        constraints = Constraints(self.variables)
+        
+        for j in range(self.num_hysts):
+            #Set antiferro coupling
+            constraints.add_inequality({"c_{}".format(j+1):-1})
+
+        return constraints 
 
 #Translation functions between general model and specific parametrizations
 def convert_to_specific_inequalities(switching_field_order:SwitchingFieldOrder, param:Parametrization) -> Inequalities:
