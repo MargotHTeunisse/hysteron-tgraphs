@@ -119,6 +119,30 @@ def make_avalanche_forest_antiferro(scaffold:Scaffold) -> AvalancheForest:
  
     return avalanche_forest
 
+def make_avalanche_forest_antiferro(scaffold:Scaffold) -> AvalancheForest:
+    """
+    Makes tree of all purely ferro avalanches (i.e., only up or only down) for a given scaffold.
+    """
+    avalanche_forest = {(state, direction):tuple() for (state, direction) in scaffold}
+
+    for (state, direction) in scaffold:
+        critical_hysteron = scaffold[(state, direction)]
+        queue = [(critical_hysteron,)]
+        while queue:
+            queue_new = []
+            for flipped in queue:
+                transition = Transition(state, flipped)
+
+                avalanche_forest[(state, direction)] += (flipped,)
+                if any((1-direction)//2) in state:
+                    final_state = transition.final_state
+                    kappa =  scaffold[(final_state, direction)]
+                    queue_new.append(flipped + (kappa,))
+
+            queue = queue_new
+ 
+    return avalanche_forest
+
 def make_candidate_graphs(scaffold:Scaffold, model:str='general') -> Iterator[Graph]:
 
     avalanche_forest_mapping =  {
