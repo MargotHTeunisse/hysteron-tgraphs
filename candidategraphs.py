@@ -119,7 +119,7 @@ def make_avalanche_forest_antiferro(scaffold:Scaffold) -> AvalancheForest:
  
     return avalanche_forest
 
-def make_avalanche_forest_antiferro(scaffold:Scaffold) -> AvalancheForest:
+def make_avalanche_forest_ferro(scaffold:Scaffold) -> AvalancheForest:
     """
     Makes tree of all purely ferro avalanches (i.e., only up or only down) for a given scaffold.
     """
@@ -131,11 +131,11 @@ def make_avalanche_forest_antiferro(scaffold:Scaffold) -> AvalancheForest:
         while queue:
             queue_new = []
             for flipped in queue:
+                
                 transition = Transition(state, flipped)
-
                 avalanche_forest[(state, direction)] += (flipped,)
-                if any((1-direction)//2) in state:
-                    final_state = transition.final_state
+                final_state = transition.final_state
+                if (1-direction)//2 in final_state:
                     kappa =  scaffold[(final_state, direction)]
                     queue_new.append(flipped + (kappa,))
 
@@ -147,7 +147,8 @@ def make_candidate_graphs(scaffold:Scaffold, model:str='general') -> Iterator[Gr
 
     avalanche_forest_mapping =  {
         'general': make_avalanche_forest,
-        'antiferro': make_avalanche_forest_antiferro
+        'antiferro': make_avalanche_forest_antiferro,
+        'ferro': make_avalanche_forest_ferro
     }
 
     avalanche_forest = avalanche_forest_mapping[model](scaffold)
@@ -179,8 +180,14 @@ def make_all_candidate_graphs(num_hysts:int, model:str='general') -> Iterator[Gr
             yield graph
             
 def count_all_candidate_graphs(num_hysts:int, model:str='general') -> int:
+    avalanche_forest_mapping =  {
+        'general': make_avalanche_forest,
+        'antiferro': make_avalanche_forest_antiferro,
+        'ferro': make_avalanche_forest_ferro
+    }
+
     total_count = 0
     for scaffold in make_all_scaffolds(num_hysts):
-        avalanche_forest = make_avalanche_forest(scaffold, model)
+        avalanche_forest = avalanche_forest_mapping[model](scaffold)
         total_count += count_candidate_graphs(avalanche_forest)
     return total_count
