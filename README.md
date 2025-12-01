@@ -6,7 +6,7 @@ The notebook 'walkthrough.ipynb' reproduces the results detailed in the article.
 
 **Getting Started**
 
-See INSTALL.md for full instructions.
+See [INSTALL.md](https://github.com/MargotHTeunisse/tgraphs-supplementary/blob/master/INSTALL.md) for full instructions.
 
 **How to contribute**
 
