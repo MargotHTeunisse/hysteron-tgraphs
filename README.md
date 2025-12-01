@@ -28,6 +28,10 @@ If you are using VSCode or PyCharm, these have built-in Git integration, so it i
 
 For Spyder, Git integration is currently minimal, so you can stick to the manual commands above. 
 
+**How to contribute**
+
+If you are building on this code and adding new features, it might be worth adding those features to this repository. If this seems relevant, please contact me to be added as a collaborator.
+
 **Environment**
 
 Python 3.12.7
@@ -49,10 +53,6 @@ For questions please contact:
 Margot Teunisse
 
 Email: teunisse@physics.leidenuniv.nl
-
-**How to contribute**
-
-If you are building on this code and adding new features, it might be worth adding those features to this repository. If this seems relevant, please contact me to be added as a collaborator.
 
 **How to cite**
 
