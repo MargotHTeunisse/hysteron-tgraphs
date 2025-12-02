@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, List, Iterator
+from typing import Tuple, List, Iterator, Set
 from dataclasses import dataclass
 import copy
 import itertools
@@ -8,10 +8,23 @@ State = Tuple[bool, ...]
 
 @dataclass(frozen=True)
 class Transition():
+    """
+   A data class which represents a single transition.
+    A transition consists out of a state and a sequence of flipped hysterons.
+    """
     state:State
     flipped:Tuple[int, ...]
 
     def __post_init__(self) -> None:
+        """Checks whether the input state and transition form a valid transition. 
+
+        Raises:
+            ValueError: Hysteron indices cannot exceed number of hysterons.
+            This occurs if 'flipped' contains indices which exceed the number of hysterons in 'state'. 
+
+            Exception: Transition cannot continue after looping. This happens if the transition is a self-loop.
+            To prevent this error, truncate 'flipped'.
+        """        
         if not all([i < self.num_hysts for i in self.flipped]):
             raise ValueError("Hysteron indices cannot exceed number of hysterons.")
         
@@ -28,12 +41,29 @@ class Transition():
                     raise Exception("Transition cannot continue after looping.")
 
     def intermediate_state(self, lamb:int) -> State:
+        """Get the lambda'th intermediate state for this transition.
+
+        Args:
+            lamb (int): The index 'lambda' of the intermediate state within the avalanche.
+
+        Raises:
+            ValueError: Not an intermediate state; index must have 1 < lambda < l-1.
+            If you are seeing this error, please ensure you are looking at the right transition.
+
+        Returns:
+            State: The target intermediate state.
+        """        
         if not (lamb > 0 and lamb < self.length):
             raise ValueError("Not an intermediate state; index must have 1 < lambda < l-1.")
         return tuple(s if self.flipped[:lamb].count(i)%2 == 0 else 1-s for i, s in enumerate(self.state))
 
     @property
     def is_loop(self) -> bool:
+        """Check if transition is a self-loop.
+
+        Returns:
+            bool: True if transition is a self-loop.
+        """        
         final_state = self.final_state
         for _, state in zip(range(self.length-1), self.path()):
             if state == final_state:
@@ -45,7 +75,7 @@ class Transition():
         return tuple(s if self.flipped.count(i)%2 == 0 else 1-s for i, s in enumerate(self.state))
 
     @property
-    def num_hysts(self) -> int:
+    def num_hysts(self) -> int:   
         return len(self.state)
 
     @property
@@ -73,13 +103,32 @@ class Transition():
             yield state
 
 class Scaffold():
+    """
+    An object class representing the 'scaffold' of a hysteron system.
+    Scaffolds were introduced as an underlying structure to understand the structure of t-graphs.
+    See also Teunisse & van Hecke (2025).
+    """
     def __init__(self, num_hysts:int):
+        """Creates a new scaffold object.
+
+        Args:
+            num_hysts (int): The number of hysterons corresponding to the scaffold.
+        """
         self.num_hysts = num_hysts
         iterator = ((state, 1-2*sign) for state in itertools.product([0, 1], repeat=num_hysts) for sign in [0, 1] if sign in state)
         self._mapping = {(state, direction):no for no, (state, direction) in enumerate(iterator)}
         self._critical_hysterons = np.array([None,]*len(self._mapping))
 
     def __eq__(self, other):
+        """
+        Magic method; defines the command '==' for the scaffold.
+
+        Args:
+            other: The scaffold to compare to. 
+
+        Returns:
+            bool: True if the two scaffolds are equal.
+        """
         return all([self[state, direction] == other[state, direction] for (state, direction) in self._mapping])
 
     def __iter__(self):
@@ -98,6 +147,10 @@ class Scaffold():
         return tuple(s if i != self[(state, direction)] else not s for i, s in enumerate(state))
 
 class SwitchingFields():
+    """
+    An object class representing the switching fields of a hysteron system in the most general model.
+    These are the defining attributes of a hysteron system.
+    """
     def __init__(self, num_hysts:int):
         self.num_hysts = num_hysts
         self._mapping = {state:state_no for state_no, state in enumerate(itertools.product([0, 1], repeat=num_hysts))}
@@ -130,6 +183,9 @@ class SwitchingFields():
         self._values[self._mapping[state]] = row
 
 class SwitchingFieldOrder():
+    """
+    A class representing a partial order of the switching fields.
+    """
     def __init__(self, num_hysts:int):
         self.num_hysts = num_hysts 
         self._mapping = {(state, i):num_hysts*state_no + i for state_no, state in enumerate(itertools.product([0, 1], repeat=num_hysts)) for i in range(num_hysts)}
@@ -140,7 +196,13 @@ class SwitchingFieldOrder():
         return np.array([np.identity(len(self._mapping))[self._mapping[(stateA, i)]] - np.identity(len(self._mapping))[self._mapping[(stateB, j)]] for ((stateA, i), (stateB, j)) in self.get()])
         
     @property
-    def open_entries(self):
+    def open_entries(self) -> Set[Tuple[State, int], Tuple[State, int]]:
+        """A class property that gives all pairs of switching fields which are not restricted by the partial order.
+
+        Returns:
+            Set[Tuple[State, int], Tuple[State, int]]: A list of pairs of switching fields, indicated by their state and hysteron index.
+        """    
+    
         return {((stateA, i), (stateB, j)) for (stateA, i) in self._mapping for (stateB, j) in self._mapping if (self._matrix[self._mapping[(stateA, i)], self._mapping[(stateB, j)]] == 0
                 and self._matrix[self._mapping[(stateB, j)], self._mapping[(stateA, i)]] == 0) and (stateA, i) != (stateB, j)}
 
@@ -157,11 +219,28 @@ class SwitchingFieldOrder():
         self._matrix[p, q] = 1
         self._apply_transitive_closure()
 
-    def get(self):
+    def get(self) -> Set[Tuple[State, int], Tuple[State, int]]:
+        """Retrieves the set of switching field orderings that defines the partial order.
+        This is a maximal set ('transitive closure').  To get a minimal set of inequalities, use get_transitive_reduction().
+
+        Returns:
+            Set[Tuple[State, int], Tuple[State, int]]: A set of pairs of switching fields, represented by their state and hysteron index.
+            The first entry in each pair is larger than the second entry.
+        """        
         return {((stateA, i), (stateB, j)) for (stateA, i) in self._mapping for (stateB, j) in self._mapping if self._matrix[self._mapping[(stateA, i)], self._mapping[(stateB, j)]] == 1}
         
-    def get_transitive_reduction(self):
-        #Uses a transitive reduction algorithm (Aho et al., SIAM Journal of Computing, 1972) to get a minimal representation of the partial order.
+    def get_transitive_reduction(self) -> Set[Tuple[State, int], Tuple[State, int]]:
+        """Uses a transitive reduction algorithm (Aho et al., SIAM Journal of Computing, 1972) to get a minimal representation of the partial order.
+
+        Raises:
+            Exception: Cannot construct transitive reduction for invalid partial order.
+            To avoid this error, check beforehand if the partial order is valid using self.valid. 
+
+        Returns:
+            Set[Tuple[State, int], Tuple[State, int]]: A set of pairs of switching fields, represented by their state and hysteron index.
+            The first entry in each pair is larger than the second entry.
+        """
+        #
         if not self.valid:
             raise Exception("Cannot construct transitive reduction for invalid partial order.")
         
@@ -169,6 +248,15 @@ class SwitchingFieldOrder():
         return {((stateA, i), (stateB, j)) for (stateA, i) in self._mapping for (stateB, j) in self._mapping if transitive_reduction_matrix[self._mapping[(stateA, i)], self._mapping[(stateB, j)]] == 1}
 
     def equate(self, stateA:State, i:int, stateB:State, j:int) -> None:
+        """Enforce that two switching fields are equal to each other.
+        This eliminates the second switching field from the partial order.
+
+        Args:
+            stateA (State): State corresponding to the first switching field.
+            i (int): Hysteron index for the first switching field.
+            stateB (State): State corresponding to the second switching field.
+            j (int): Hysteron index for the second switching field.
+        """
         p = self._mapping[(stateA, i)]
         q = self._mapping[(stateB, j)]
         if p != q:
@@ -209,6 +297,9 @@ class SwitchingFieldOrder():
         
         
 class Graph():
+    """
+    An object class representing a transition graph associated with a hysteron system.
+    """
     def __init__(self, num_hysts:int):
         self.num_hysts = num_hysts
         iterator = ((state, 1-2*sign) for state in itertools.product([0, 1], repeat=num_hysts) for sign in [0, 1] if sign in state)
@@ -254,6 +345,15 @@ def flip_state(state:State, index:int) -> State:
     return tuple(1-s if index == i else s for i, s in enumerate(state))
 
 def make_initial_inequalities(scaffold:Scaffold, stable=False) -> SwitchingFieldOrder:
+    """Constructs the design inequalities associated with a given scaffold.
+
+    Args:
+        scaffold (Scaffold): The target scaffold.
+        stable (bool, optional): Indicates whether the design inequalities should require states to be stable. Defaults to False.
+
+    Returns:
+        SwitchingFieldOrder: The design inequalities of the scaffold in the most general model
+    """    
     switching_field_order = SwitchingFieldOrder(scaffold.num_hysts)
     for (state, direction) in scaffold:
         k = scaffold[(state, direction)]
@@ -280,6 +380,17 @@ def make_initial_inequalities(scaffold:Scaffold, stable=False) -> SwitchingField
     return switching_field_order
 
 def make_design_inequalities(graph:Graph, resolve_race = False) -> SwitchingFieldOrder:
+    """Constructs the design inequalities associated with a given hysteron t-graph.
+
+    Args:
+        graph (Graph): The target t-graph.
+        resolve_race (bool, optional): Indicates whether race conditions are 'resolved' by flipping the most unstable hysteron.
+        If True, the inequalitieis associated with race conditions are left out.
+        Defaults to False.
+
+    Returns:
+        SwitchingFieldOrder: The design inequalities of the target t-graph in the most general model.
+    """    
     switching_field_order = make_initial_inequalities(graph.scaffold, stable=True)
     
     for (state, direction) in graph:
@@ -322,6 +433,28 @@ def make_design_inequalities(graph:Graph, resolve_race = False) -> SwitchingFiel
     return switching_field_order
     
 def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self = False, exclude: List[Tuple[State, int]]=[])-> Graph:
+    """Constructs the t-graph for a given hysteron system in the most general model of interacting hysterons.
+
+    Args:
+        switching_fields (SwitchingFields): The switching fields for the target hysteron system in the general interacting hysteron model.
+        To construct the t-graph for a specific hysteron, first convert these to the general model.
+        resolve_race (bool, optional): Indicates whether race conditions are 'resolved' by flipping the most unstable hysteron.
+        Defaults to False.
+        allow_self (bool, optional): Indicates whether self-loops are considered well-defined transitions. Defaults to False.
+        exclude (List[Tuple[State, int]], optional): Indicates transitions that should be excluded from the list.
+        This can be necessary when, for example, the full t-graph would include degeneracies. Defaults to an empty list.
+
+    Raises:
+        Exception: Ill-defined transition: multiple unstable hysterons. This is raised if race conditions occur.
+        To prevent this error, set resolve_race to True.
+        Exception: Ill-defined transition: self-loop. To prevent this error, set allow_self to True.
+        Exception: Ill-defined transition: marginal avalanche. 
+        This is raised if, at some point in an avalanche, there is a degeneracy in the critical hysterons.
+        This degeneracy cannot be resolved by this code; instead, please check the input switching fields.
+
+    Returns:
+        Graph: The transition graph corresponding to the target hysteron system.
+    """    
     graph = Graph(switching_fields.num_hysts)
 
     scaffold = switching_fields.scaffold(exclude)
@@ -361,12 +494,35 @@ def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self 
     return graph
 
 def make_graph_from_scaffold(scaffold:Scaffold) -> Graph:
+    """Constructs the avalanche-free graph for a given scaffold.
+
+    Args:
+        scaffold (Scaffold): The target scaffold.
+
+    Returns:
+        Graph: The t-graph without any avalanches corresponding to the given scaffold.
+    """    
     graph = Graph(scaffold.num_hysts)
     for (state, direction) in scaffold:
         graph.add(state, (scaffold[(state, direction)],))
     return graph
 
 def generate_general_solution(switching_field_order:SwitchingFieldOrder, a=1, b=1) -> SwitchingFields:
+    """Constructs a random total ordering of the switching fields that obeys a given partial order.
+
+    Args:
+        switching_field_order (SwitchingFieldOrder): A partial order of the switching fields.
+        a (int, optional): The distance between switching fields. Defaults to 1.
+        b (int, optional): The value of the lowest switching field. Defaults to 1.
+
+    Raises:
+        Exception: Not a valid partial order. This is raised if the input partial order is invalid.
+
+    Returns:
+        SwitchingFields: A set of switching fields that follows the input partial order.
+        Values range from b to ax + b, where x is the number of switching fields.
+    """    
+
     #Check that a solution exists
     if not switching_field_order.valid:
         raise Exception("Not a valid partial order.")
@@ -396,6 +552,14 @@ def generate_general_solution(switching_field_order:SwitchingFieldOrder, a=1, b=
     return switching_fields
     
 def count_linear_extensions(switching_field_order:SwitchingFieldOrder) -> int:
+    """Counts the number of total orders (or 'linear extensions') corresponding to a given partial order of the switching fields.
+
+    Args:
+        switching_field_order (SwitchingFieldOrder): A partial order of the switching fields.
+
+    Returns:
+        int: The number of total orders for the given partial order.
+    """    
      #Count linear extensions based on algorithm described by Peczarski (2004).
     keys = {(state, i) for (state, i) in switching_field_order}
     counts = {tuple():1}
