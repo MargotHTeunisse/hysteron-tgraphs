@@ -5,6 +5,9 @@ __pycache__/*
 #Virtual environment
 .venv
 
+#VSCode
+.vscode
+
 #Generated figures
 figs/*
 
