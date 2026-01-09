@@ -7,3 +7,7 @@ __pycache__/*
 
 #Generated figures
 figs/*
+
+#Jupyter notebooks
+*.ipynb
+!walkthrough.ipynb
