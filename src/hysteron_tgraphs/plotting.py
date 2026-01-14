@@ -13,7 +13,7 @@ rc('font', **font)
 
 colwidth = 3.375
 
-def state_to_label(state:State):
+def state_to_label(state:State) -> str:
     return "".join([str(s) for s in state])
     
 def node_position(state:State) -> Tuple[float, float]:
@@ -26,7 +26,9 @@ def node_position(state:State) -> Tuple[float, float]:
     
     return (pos_x, float(pos_y))
 
-def transition_graph(graph:Graph, xmargin=0.25, spacing=colwidth/8, highlight:List[State] = []):
+def transition_graph(graph:Graph, xmargin=0.25,
+                     spacing=colwidth/8, 
+                     highlight:List[State] = []):
     num_hysts = graph.num_hysts
     
     width = (binom(num_hysts, num_hysts//2)+1)*spacing
@@ -71,7 +73,11 @@ def transition_graph(graph:Graph, xmargin=0.25, spacing=colwidth/8, highlight:Li
 
     return fig, ax
     
-def plot_sfs(switching_fields:SwitchingFields, transitions = [], spacing=colwidth/8, ymargin=colwidth/6, xmargin=colwidth/8, height=colwidth/2):
+def plot_sfs(switching_fields:SwitchingFields, 
+             transitions = [], 
+             spacing=colwidth/8, 
+             ymargin=colwidth/6, xmargin=colwidth/8, 
+             height=colwidth/2):
     """Plots switching fields and resulting stability ranges per state; switching_fields is a 2D array with states on axis 0 and hysteron indices on axis 1."""
     color_map = ['darkviolet', 'goldenrod']
     markersize = 300
