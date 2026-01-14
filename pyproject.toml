@@ -1,0 +1,18 @@
+[project]
+name = "hysteron-tgraphs"
+authors = [{name = "Margot Teunisse"}]
+requires-python = ">=3.12"
+version = "2.0.0"
+dependencies = ["numpy>=1.26.4",
+                "scipy>=1.13.1"]
+readme = "README.md"
+license = "MIT"
+
+[project.optional-dependencies]
+plotting = ["matplotlib>=3.9.2"]
+graph-analysis = ["networkx>=3.3"]
+polyhedron-analysis =["pycddlib==2.1.8.post1"]
+
+[build-system]
+requires = ["uv_build>=0.9.14,<0.10.0"]
+build-backend = "uv_build"

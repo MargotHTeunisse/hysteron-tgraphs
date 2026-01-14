@@ -1,4 +1,4 @@
-from model import *
+from hysteron_tgraphs.model import *
 import numpy as np
 import scipy.special
 import itertools

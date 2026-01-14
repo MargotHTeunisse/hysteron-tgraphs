@@ -1,4 +1,4 @@
-from model import *
+from hysteron_tgraphs.model import *
 from typing import Tuple, List
 import itertools
 from scipy.special import binom
@@ -13,20 +13,22 @@ rc('font', **font)
 
 colwidth = 3.375
 
-def state_to_label(state:State):
+def state_to_label(state:State) -> str:
     return "".join([str(s) for s in state])
     
-def node_position(state:State):
+def node_position(state:State) -> Tuple[float, float]:
     num_hysts = len(state)
     permutations = [np.array(list(itertools.permutations([1]*i + [0]*(num_hysts-i)))) for i in range(num_hysts + 1)]
     permutations = [np.unique(el, axis=0) for el in permutations]
 
-    pos_y = np.sum(state)
-    pos_x = np.where(np.all(permutations[pos_y] == state, axis=1))[0] + 1 - len(permutations[pos_y])/2
+    pos_y = sum(state)
+    pos_x = np.where(np.all(permutations[pos_y] == state, axis=1))[0][0] + 1 - len(permutations[pos_y])/2
     
-    return np.array([pos_x, pos_y], dtype=object)
+    return (pos_x, float(pos_y))
 
-def transition_graph(graph:Graph, xmargin=0.25, spacing=colwidth/8, highlight:List[State] = []):
+def transition_graph(graph:Graph, xmargin=0.25,
+                     spacing=colwidth/8, 
+                     highlight:List[State] = []):
     num_hysts = graph.num_hysts
     
     width = (binom(num_hysts, num_hysts//2)+1)*spacing
@@ -71,7 +73,11 @@ def transition_graph(graph:Graph, xmargin=0.25, spacing=colwidth/8, highlight:Li
 
     return fig, ax
     
-def plot_sfs(switching_fields:SwitchingFields, transitions = [], spacing=colwidth/8, ymargin=colwidth/6, xmargin=colwidth/8, height=colwidth/2):
+def plot_sfs(switching_fields:SwitchingFields, 
+             transitions = [], 
+             spacing=colwidth/8, 
+             ymargin=colwidth/6, xmargin=colwidth/8, 
+             height=colwidth/2):
     """Plots switching fields and resulting stability ranges per state; switching_fields is a 2D array with states on axis 0 and hysteron indices on axis 1."""
     color_map = ['darkviolet', 'goldenrod']
     markersize = 300

@@ -1,4 +1,6 @@
-from model import *
+import sys
+sys.path.append("./src")
+from hysteron_tgraphs.model import *
 import pytest
 
 def test_make_single_hysteron_graph():
@@ -153,4 +155,4 @@ def test_irresolvible_race_conditions():
 
     switching_field_order = make_design_inequalities(graph, resolve_race=True)
 
-    assert switching_field_order.valid
+    assert switching_field_order.valid == False
