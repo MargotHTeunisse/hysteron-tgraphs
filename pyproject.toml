@@ -9,6 +9,7 @@ readme = "README.md"
 license = "MIT"
 
 [project.optional-dependencies]
+plotting = ["matplotlib>=3.9.2"]
 graph-analysis = ["networkx>=3.3"]
 polyhedron-analysis =["pycddlib>=2.1.8.post1"]
 
