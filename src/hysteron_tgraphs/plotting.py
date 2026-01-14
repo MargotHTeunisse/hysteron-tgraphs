@@ -1,4 +1,4 @@
-from model import *
+from .model import *
 from typing import Tuple, List
 import itertools
 from scipy.special import binom

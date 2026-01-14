@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod, abstractproperty
 from typing import List, Dict
-from model import *
+from .model import *
 from scipy import optimize
 
 Inequalities = Dict[str, List[np.float64]]
