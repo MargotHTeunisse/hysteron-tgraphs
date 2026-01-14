@@ -1,4 +1,4 @@
-from .model import *
+from hysteron_tgraphs.model import *
 from typing import Tuple, List
 import itertools
 from scipy.special import binom

@@ -1,4 +1,4 @@
-from .model import *
+from hysteron_tgraphs.model import *
 import networkx as nx
 
 """This module is separated because it depends on the networkx package.
