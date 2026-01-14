@@ -1,32 +1,47 @@
-**About**
+#About
 
 The code in this repository was published in conjunction with the article "Transition Graphs of Interacting Hysterons: Structure, Design, Organisation and Statistics" by Margot H. Teunisse and Martin van Hecke for Royal Society Open Science (2025). 
 
-The notebook 'walkthrough.ipynb' reproduces the results detailed in the article.
+The notebook 'walkthrough.ipynb' in the repository github.com/MargotHTeunisse/hysteron-tgraphs reproduces the results detailed in the article.
 
-**Getting Started**
+#Getting Started
 
-See [INSTALL.md](https://github.com/MargotHTeunisse/tgraphs-supplementary/blob/master/INSTALL.md) for full instructions.
+To import this software, first install it from PyPI by running 
 
-**How to contribute**
+```console
 
-If you are building on this code and adding new features, it might be worth adding those features to this repository. If this seems relevant, please contact me to be added as a collaborator.
+pip install hysteron_tgraphs
 
-**Environment**
+```
+**Dependencies**
 
-Python 3.12.7
+The core functionalities of this code are compatible with
 
-Matplotlib 3.9.2
+Python >= 3.12
 
-Numpy 1.26.4
+Numpy >= 1.26.4
 
-Scipy 1.13.1
+Scipy >= 1.13.1
 
-NetworkX 3.3 (*only for graph_analysis.py*)
+**Optional features**
 
-Pycddlib 2.1.8 (*only for polyhedron_analysis.py*)
+These features have optional dependencies which can be specified on installation, e.g. by running 
 
-**Contact information**
+
+```console
+
+pip install hysteron_tgraphs[plotting]
+
+```
+
+plotting : Contains functions for visualizing transition graphs and switching fields. Requires Matplotlib >= 3.9.2. 
+
+graph-analysis: Currently only used to remove Garden-of-Eden states. Requires NetworkX >= 3.3.
+
+polyhedron-analysis: <span style="color:red"> Not recommended for most use cases. <\span> Calculates the probability of a transition graph by calculating the volume of the corresponding polyhedron. Uses Pycddlib 2.1.8.post1. 
+
+
+#Contact Information
 
 For questions please contact:
 
@@ -34,11 +49,11 @@ Margot Teunisse
 
 Email: teunisse@physics.leidenuniv.nl
 
-**How to cite**
+#How to Cite
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16920053.svg)](https://doi.org/10.5281/zenodo.16920053)
 
-**Financial statement**
+#Financial Statement
 
 This work is supported by ERC-101019474.
 
