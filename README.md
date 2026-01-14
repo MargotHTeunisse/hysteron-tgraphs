@@ -38,7 +38,7 @@ plotting : Contains functions for visualizing transition graphs and switching fi
 
 graph-analysis: Currently only used to remove Garden-of-Eden states. Requires NetworkX >= 3.3.
 
-polyhedron-analysis: <span style="color:red"> Not recommended for most use cases. <\span> Calculates the probability of a transition graph by calculating the volume of the corresponding polyhedron. Uses Pycddlib 2.1.8.post1. 
+polyhedron-analysis: <span style="color:red"> Not recommended for most use cases. </span> Calculates the probability of a transition graph by calculating the volume of the corresponding polyhedron. Uses Pycddlib 2.1.8.post1. 
 
 
 #Contact Information
