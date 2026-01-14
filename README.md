@@ -1,5 +1,3 @@
-**Note: although this README is already updated, I am still in the process of publishing this code on PyPI.**
-
 # About
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16920053.svg)](https://doi.org/10.5281/zenodo.16920053)
