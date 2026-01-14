@@ -1,4 +1,6 @@
-from model import *
+import sys
+sys.path.append("./src")
+from hysteron_tgraphs.model import *
 import pytest
 
 def test_make_single_hysteron_graph():
