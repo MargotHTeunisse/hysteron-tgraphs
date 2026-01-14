@@ -155,4 +155,4 @@ def test_irresolvible_race_conditions():
 
     switching_field_order = make_design_inequalities(graph, resolve_race=True)
 
-    assert switching_field_order.valid
+    assert switching_field_order.valid == False
