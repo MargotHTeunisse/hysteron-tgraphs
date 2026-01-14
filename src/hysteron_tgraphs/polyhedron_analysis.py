@@ -1,4 +1,4 @@
-from model import *
+from .model import *
 import cdd
 from scipy import spatial
 
