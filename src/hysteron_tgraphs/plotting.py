@@ -16,15 +16,15 @@ colwidth = 3.375
 def state_to_label(state:State):
     return "".join([str(s) for s in state])
     
-def node_position(state:State):
+def node_position(state:State) -> Tuple[float, float]:
     num_hysts = len(state)
     permutations = [np.array(list(itertools.permutations([1]*i + [0]*(num_hysts-i)))) for i in range(num_hysts + 1)]
     permutations = [np.unique(el, axis=0) for el in permutations]
 
-    pos_y = np.sum(state)
-    pos_x = np.where(np.all(permutations[pos_y] == state, axis=1))[0] + 1 - len(permutations[pos_y])/2
+    pos_y = sum(state)
+    pos_x = np.where(np.all(permutations[pos_y] == state, axis=1))[0][0] + 1 - len(permutations[pos_y])/2
     
-    return np.array([pos_x, pos_y], dtype=object)
+    return (pos_x, float(pos_y))
 
 def transition_graph(graph:Graph, xmargin=0.25, spacing=colwidth/8, highlight:List[State] = []):
     num_hysts = graph.num_hysts
