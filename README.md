@@ -12,7 +12,7 @@ To import this software, first install it from PyPI by running
 
 ```console
 
-pip install hysteron_tgraphs
+pip install hysteron-tgraphs
 
 ```
 ## Dependencies
@@ -32,7 +32,7 @@ These modules have additional dependencies which can be specified on installatio
 
 ```console
 
-pip install hysteron_tgraphs[plotting]
+pip install hysteron-tgraphs[plotting]
 
 ```
 
