@@ -96,7 +96,7 @@ class PairwiseAdditiveGlobal(Parametrization):
 #Translation functions between general model and specific parametrizations
 def convert_to_specific_inequalities(switching_field_order:SwitchingFieldOrder, param:Parametrization) -> Inequalities:
     inequalities = {var:[] for var in param.variables}
-    for no, ((stateA, i), (stateB, j)) in enumerate(switching_field_order.get_transitive_reduction()):
+    for no, ((stateA, i), (stateB, j)) in enumerate(switching_field_order.get()):
         for var in param.variables:
             inequalities[var].append(0)
         for (var, val) in param.transform(stateA, i).items():

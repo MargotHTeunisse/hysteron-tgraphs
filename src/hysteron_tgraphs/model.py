@@ -193,7 +193,8 @@ class SwitchingFieldOrder():
         self._apply_transitive_closure()
 
     def to_coeffs(self):
-        return np.array([np.identity(len(self._mapping))[self._mapping[(stateA, i)]] - np.identity(len(self._mapping))[self._mapping[(stateB, j)]] for ((stateA, i), (stateB, j)) in self.get()])
+        return np.array([np.identity(len(self._mapping))[self._mapping[(stateA, i)]] - np.identity(len(self._mapping))[self._mapping[(stateB, j)]] for ((stateA, i), (stateB, j)) 
+                         in self.get()])
         
     @property
     def open_entries(self) -> Set[Tuple[Tuple[State, int], Tuple[State, int]]]:
@@ -219,9 +220,9 @@ class SwitchingFieldOrder():
         self._matrix[p, q] = 1
         self._apply_transitive_closure()
 
-    def get(self) -> Set[Tuple[Tuple[State, int], Tuple[State, int]]]:
+    def get_transitive_closure(self) -> Set[Tuple[Tuple[State, int], Tuple[State, int]]]:
         """Retrieves the set of switching field orderings that defines the partial order.
-        This is a maximal set ('transitive closure').  To get a minimal set of inequalities, use get_transitive_reduction().
+        This also includes implied entries: if a > b and b > c, then a > c is also included.
 
         Returns:
             Set[Tuple[Tuple[State, int], Tuple[State, int]]]: A set of pairs of switching fields, represented by their state and hysteron index.
@@ -229,7 +230,7 @@ class SwitchingFieldOrder():
         """        
         return {((stateA, i), (stateB, j)) for (stateA, i) in self._mapping for (stateB, j) in self._mapping if self._matrix[self._mapping[(stateA, i)], self._mapping[(stateB, j)]] == 1}
         
-    def get_transitive_reduction(self) -> Set[Tuple[Tuple[State, int], Tuple[State, int]]]:
+    def get(self) -> Set[Tuple[Tuple[State, int], Tuple[State, int]]]:
         """Uses a transitive reduction algorithm (Aho et al., SIAM Journal of Computing, 1972) to get a minimal representation of the partial order.
 
         Raises:
@@ -569,7 +570,7 @@ def count_linear_extensions(switching_field_order:SwitchingFieldOrder) -> int:
         for downset in counts:
             downset = set(downset)
             for (stateA, i) in keys - downset:
-                if not any (((stateA, i), (stateB, j)) in switching_field_order.get() for (stateB, j) in keys - downset):
+                if not any (((stateA, i), (stateB, j)) in switching_field_order.get_transitive_closure() for (stateB, j) in keys - downset):
                     upset = downset.copy()
                     upset.add((stateA, i))
                     if tuple(sorted(list(upset))) in counts_new:
