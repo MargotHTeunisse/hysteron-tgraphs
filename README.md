@@ -8,7 +8,7 @@ The notebook 'walkthrough.ipynb' in the repository github.com/MargotHTeunisse/hy
 
 # Getting Started
 
-To import this software, first install it from PyPI by running 
+To import this package, first install it from PyPI by running 
 
 ```console
 
