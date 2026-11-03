@@ -1,8 +1,8 @@
 import numpy as np
 from typing import Tuple, List, Iterator, Set
 from dataclasses import dataclass
-import copy
 import itertools
+from hysteron_tgraphs.exceptions import InvalidTransitionPathException, SelfLoopException, AmbiguousTransitionException
 
 State = Tuple[bool, ...]
 
@@ -22,7 +22,7 @@ class Transition():
             ValueError: Hysteron indices cannot exceed number of hysterons.
             This occurs if 'flipped' contains indices which exceed the number of hysterons in 'state'. 
 
-            Exception: Transition cannot continue after looping. This happens if the transition is a self-loop.
+            InvalidTransitionException: Transition cannot continue after looping.
             To prevent this error, truncate 'flipped'.
         """        
         if not all([i < self.num_hysts for i in self.flipped]):
@@ -38,7 +38,7 @@ class Transition():
             state = state[:i] + (1-state[i],) + state[i+1:]
             if state in visited:
                 if lamb < len(self.flipped):
-                    raise Exception("Transition cannot continue after looping.")
+                    raise InvalidTransitionPathException("Transition cannot continue after looping.")
 
     def intermediate_state(self, lamb:int) -> State:
         """Get the lambda'th intermediate state for this transition.
@@ -445,9 +445,8 @@ def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self 
         This can be necessary when, for example, the full t-graph would include degeneracies. Defaults to an empty list.
 
     Raises:
-        Exception: Ill-defined transition: multiple unstable hysterons. This is raised if race conditions occur.
-        To prevent this error, set resolve_race to True.
-        Exception: Ill-defined transition: self-loop. To prevent this error, set allow_self to True.
+        AmbiguousTransitionException: To prevent this error, set resolve_race to True.
+        SelfLoopException: To prevent this error, set allow_self to True.
         Exception: Ill-defined transition: marginal avalanche. 
         This is raised if, at some point in an avalanche, there is a degeneracy in the critical hysterons.
         This degeneracy cannot be resolved by this code; instead, please check the input switching fields.
@@ -476,15 +475,17 @@ def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self 
                 diffs = [abs(switching_fields[state][i] - switching_fields[state0][k]) for i in unstable_hysterons]
                 kappa = unstable_hysterons[np.argmax(diffs)]
             else:
-                raise Exception("Ill-defined transition: multiple unstable hysterons.")
+                raise AmbiguousTransitionException(f"State {state} has race conditions"
+                                                   + f"for {['up', 'down'][(1-direction)//2]} transition from state {state0}."
+                                                   + f"Unstable hysterons: {unstable_hysterons}")
             flipped += (kappa,)
             state = flip_state(state, kappa)
             if state in transition_path:
                 if allow_self:
                     break
-                raise Exception("Ill-defined transition: self-loop.")
+                raise SelfLoopException(f"{['Up', 'Down'][(1-direction)//2]} transition from state {state0} is a self-loop.")
             if state != state0 and np.isclose(critical_driving, switching_fields[state][kappa]):
-                raise Exception("Ill-defined transition: marginal avalanche.")
+                raise Exception("")
             transition_path += [state]
 
             unstable_hysterons = tuple(i for i, val in enumerate(switching_fields[state]) if (state[i] == 0 and val < critical_driving) or (state[i] == 1 and val > critical_driving))

@@ -1,12 +1,115 @@
 from hysteron_tgraphs.model import *
+from hysteron_tgraphs.exceptions import InvalidTransitionPathException, SelfLoopException, AmbiguousTransitionException
 import pytest
 
 class TestTransition:
-    def test_check_self_loop_single_hysterons(self):
-        assert Transition((0,), (0, 0)).is_loop
+    def test_single_hysteron_can_flip_up(self):
+        up_transition = Transition((0,), (0,))
 
-    def test_check_self_loop_two_hysterons(self):
-        assert Transition((0, 0), (1, 0, 1, 0)).is_loop
+        assert up_transition.final_state == (1,)
+
+    def test_single_hysteron_can_flip_down(self):
+        down_transition = Transition((1,), (0,))
+
+        assert down_transition.final_state == (0,)
+
+    def test_hysteron_indices_cannot_exceed_number_of_hysterons(self):
+        with pytest.RaisesExc(ValueError):
+            Transition((0,), (1,))
+
+    @pytest.mark.parametrize("state, flipped", [
+        ((0,), (0, 0)),
+        ((0, 0), (1, 0, 1, 0)),
+        ((0, 0), (1, 0, 0))
+    ])
+    def test_recognizes_self_loop(self, state:State, flipped:Tuple[int]):
+        assert Transition(state, flipped).is_loop
+
+    @pytest.mark.parametrize("state, flipped", [
+        ((0,), (0,)),
+        ((0, 0), (1, 0)),
+        ((0, 0), (1, 0, 1)),
+    ])
+    def test_recognizes_non_looping_transition(self, state:State, flipped:Tuple[int]):
+        assert not Transition(state, flipped).is_loop
+
+    @pytest.mark.parametrize("state, flipped", [
+        ((0,), (0, 0, 0)),
+        ((0, 0), (1, 0, 1, 0, 1))
+    ])
+    def test_cannot_continue_transition_after_looping(self, state:State, flipped:Tuple[int]):
+        with pytest.RaisesExc(InvalidTransitionPathException):
+            Transition(state, flipped)
+
+    @pytest.mark.parametrize("lamb,expected", [
+        (1, (0, 1)),
+        (2, (1, 1))
+    ])
+    def test_can_obtain_intermediate_state(self, lamb:int, expected:State):
+        transition = Transition((0, 0), (1, 0, 1))
+
+        intermediate_state: State = transition.intermediate_state(lamb)
+
+        assert intermediate_state == expected
+
+    @pytest.mark.parametrize("lamb", [0, 3, 4])
+    def test_cannot_obtain_intermediate_state_at_invalid_index(self, lamb:int):
+        transition = Transition((0, 0), (1, 0, 1))
+
+        with pytest.RaisesExc(ValueError):
+            transition.intermediate_state(lamb)
+
+    @pytest.mark.parametrize("flipped",[
+        (0,),
+        (1,),
+        (1, 0, 1)
+    ])
+    def test_can_obtain_critical_hysteron(self, flipped:Tuple[int]):
+        transition = Transition((0, 0), flipped)
+
+        critical_hysteron = transition.critical_hysteron
+
+        expected = flipped[0]
+        assert critical_hysteron == expected
+
+    @pytest.mark.parametrize("flipped",[
+        (0,),
+        (1,),
+        (1, 0, 1),
+        (2, 0),
+        (3,)
+    ])    
+    def test_can_obtain_transition_sign(self, flipped:Tuple[int]):
+        """
+        Test that transition sign can be obtained;
+        this is the initial phase(0/1) of the critical hysteron. 
+        """
+        state = (0, 0, 1, 1)
+        transition = Transition(state, flipped)
+        critical_hysteron = flipped[0]
+
+        sign = transition.sign
+
+        assert sign == state[critical_hysteron]
+
+    @pytest.mark.parametrize("flipped,expected",[
+        ((0,), 1),
+        ((1,), 1),
+        ((1, 0, 1),1),
+        ((2, 0), -1),
+        ((3,), -1)
+    ])    
+    def test_can_obtain_transition_direction(self, flipped:Tuple[int], expected:int):
+        """
+        Test that transition direction can be obtained (up = +1, down = -1).
+        """
+        state = (0, 0, 1, 1)
+        transition = Transition(state, flipped)
+        critical_hysteron = flipped[0]
+
+        direction = transition.direction
+
+        assert direction == expected
 
 class TestGraph:
     def test_make_single_hysteron_graph(self):
@@ -26,7 +129,7 @@ class TestGraph:
         switching_fields[(0,)] = (1,)
         switching_fields[(1,)] = (2,)
 
-        with pytest.RaisesExc(Exception):
+        with pytest.RaisesExc(SelfLoopException) as e:
             make_graph(switching_fields)
 
     def test_self_loop_allowance(self):
@@ -69,7 +172,7 @@ class TestGraph:
         switching_fields[(1, 1)] = (-2, 1)
         switching_fields[(1, 0)] = (0, 3)
 
-        with pytest.RaisesExc(Exception):
+        with pytest.RaisesExc(AmbiguousTransitionException) as e:
             make_graph(switching_fields, allow_self=True)
 
     def test_resolve_race_conds_via_most_unstable_hysteron(self):
