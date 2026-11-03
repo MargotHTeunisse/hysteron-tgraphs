@@ -1,5 +1,3 @@
-import sys
-sys.path.append("./src")
 from hysteron_tgraphs.model import *
 import pytest
 
