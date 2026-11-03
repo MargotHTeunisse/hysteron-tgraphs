@@ -207,6 +207,45 @@ class TestSwitchingFieldOrder:
     
         assert switching_field_order.valid
 
+    def test_transitive_closure_for_single_transition(self):
+        """
+        Test that transitive closure (maximal set of inequalities) can be obtained.
+        """
+        graph = Graph(2)
+        graph.add((0, 0), (1, 0))
+        switching_field_order = make_design_inequalities(graph)
+
+        inequalities:Set[Tuple[Tuple[State, int], Tuple[State, int]]] = switching_field_order.get()
+
+        transitive_closure = {(((0, 0), 0), ((0, 0), 1)),
+                              (((0, 0), 1), ((0, 1), 0)),
+                              (((0, 0), 1), ((0, 1), 1)),
+                              (((0, 0), 1), ((1, 1), 0)),
+                              (((0, 0), 1), ((1, 1), 1)),
+                              (((0, 0), 0), ((0, 1), 0)),
+                              (((0, 0), 0), ((0, 1), 1)),
+                              (((0, 0), 0), ((1, 1), 0)),
+                              (((0, 0), 0), ((1, 1), 1)),}
+        assert inequalities == transitive_closure
+
+    def test_transitive_reduction_for_single_transition(self):
+        """
+        Test that transitive reduction (maximal set of inequalities) can be obtained.
+        """
+        graph = Graph(2)
+        graph.add((0, 0), (1, 0))
+        switching_field_order = make_design_inequalities(graph)
+
+        inequalities:Set[Tuple[Tuple[State, int], Tuple[State, int]]] = switching_field_order.get_transitive_reduction()
+
+        transitive_closure = {(((0, 0), 0), ((0, 0), 1)),
+                              (((0, 0), 1), ((0, 1), 0)),
+                              (((0, 0), 1), ((0, 1), 1)),
+                              (((0, 0), 1), ((1, 1), 0)),
+                              (((0, 0), 1), ((1, 1), 1))}
+        assert inequalities == transitive_closure
+
+
     def test_valid_self_loop(self):
         """
         Check that the conditions for a self-loop are valid.
