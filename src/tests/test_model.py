@@ -299,3 +299,44 @@ class TestSwitchingFieldOrder:
         switching_field_order = make_design_inequalities(graph, resolve_race=True)
 
         assert switching_field_order.valid == False
+
+    @pytest.mark.parametrize("num_hysts", [1, 2])
+    def test_total_linear_extensions_is_factorial(self, num_hysts:int):
+        """
+        The total amount of linear extensions for a given number of hysterons is the factorial of the number of thresholds n*2^n.
+        """
+        switching_field_order = SwitchingFieldOrder(num_hysts)
+
+        total_count = count_linear_extensions(switching_field_order)
+
+        # This is just a manual factorial;
+        # I'd rather keep my unit tests independent of Numpy.
+        num_thresholds = num_hysts*2**num_hysts
+        expected = 1
+        for factor in range(1, num_thresholds + 1):
+            expected*= factor
+        assert total_count == expected
+
+    @pytest.mark.parametrize("critical_down_hysteron", [0, 1])
+    def test_linear_extensions_for_two_hysteron_scaffold(self, critical_down_hysteron:int):
+        """
+        Check that linear extensions are counted correctly for scaffold inequalities.
+        This can be done analytically, with each scaffold taking up an equal partition of solution space:
+        see Teunisse & van Hecke (2025), section 5.2. 
+        """
+        num_hysts = 2
+        scaffold = Scaffold(num_hysts)
+        scaffold[((0, 0), 1)] = 1
+        scaffold[((0, 1), 1)] = 0
+        scaffold[((1, 0), 1)] = 1
+        scaffold[((0, 1), -1)] = 1
+        scaffold[((1, 0), -1)] = 0
+        scaffold[((1, 1), -1)] = critical_down_hysteron
+        switching_field_order = make_initial_inequalities(scaffold, stable=False)
+
+        linear_extension_count: int = count_linear_extensions(switching_field_order)
+
+        total_linear_extensions = 40320 # = 8!
+        num_scaffolds = 4 # just the 'Preisach' scaffolds for 2 hysterons; more complex for 3+ hysterons
+        expected = total_linear_extensions//num_scaffolds # analytical linear extension count
+        assert linear_extension_count == expected
