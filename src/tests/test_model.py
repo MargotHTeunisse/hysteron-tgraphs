@@ -1,5 +1,5 @@
 from hysteron_tgraphs.model import *
-from hysteron_tgraphs.exceptions import InvalidTransitionPathException, SelfLoopException, AmbiguousTransitionException
+from hysteron_tgraphs.exceptions import *
 import pytest
 
 class TestTransition:
@@ -303,6 +303,14 @@ class TestSwitchingFieldOrder:
                               (((0, 0), 1), ((1, 1), 1))}
         assert inequalities == transitive_closure
 
+    def test_cannot_construct_transitive_reduction_for_invalid_partial_order(self):
+        switching_field_order = SwitchingFieldOrder(1)
+        switching_field_order.add((0,), 0, (1,), 0)
+        switching_field_order.add((1,), 0, (0,), 0)
+
+        with pytest.RaisesExc(InvalidPartialOrderException) as e:
+            switching_field_order.get_transitive_reduction()
+
 
     def test_valid_self_loop(self):
         """
@@ -399,6 +407,24 @@ class TestSwitchingFieldOrder:
         expected = total_linear_extensions//num_scaffolds # analytical linear extension count
         assert linear_extension_count == expected
 
+    def test_cannot_iadd_switching_field_orders_for_different_hysteron_number(self):
+        one_hysteron_order = SwitchingFieldOrder(1)
+        two_hysteron_order = SwitchingFieldOrder(2)
+
+        with pytest.RaisesExc(Exception):
+            one_hysteron_order += two_hysteron_order
+
+    def test_can_iadd_switching_field_orders_for_same_hysteron_number(self):
+        switching_field_order = SwitchingFieldOrder(2)
+        switching_field_order.add((0, 0), 1, (0, 1), 1,)
+        second_switching_field_order = SwitchingFieldOrder(2)
+        second_switching_field_order.add((0, 0), 0, (1, 0), 0,)
+        switching_field_order += second_switching_field_order
+
+        combined_inequalities = switching_field_order.get()
+        expected = {(((0, 0), 0), ((1, 0), 0)), (((0, 0), 1), ((0, 1), 1))}
+        assert combined_inequalities == expected
+
 class TestGeneralSolution:
     def test_can_replicate_graph_using_general_solution(self):
         graph = Graph(2)
@@ -414,3 +440,11 @@ class TestGeneralSolution:
 
         replicated_graph = make_graph(general_solution)
         assert replicated_graph == graph
+
+    def test_cannot_generate_general_solution_for_invalid_order(self):
+        switching_field_order = SwitchingFieldOrder(1)
+        switching_field_order.add((0,), 0, (1,), 0)
+        switching_field_order.add((1,), 0, (0,), 0)
+
+        with pytest.RaisesExc(InvalidPartialOrderException) as e:
+            generate_general_solution(switching_field_order)

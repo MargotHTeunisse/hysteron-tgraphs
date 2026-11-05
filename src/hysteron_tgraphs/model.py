@@ -2,8 +2,7 @@ import numpy as np
 from typing import Tuple, List, Iterator, Set
 from dataclasses import dataclass
 import itertools
-from hysteron_tgraphs.exceptions import InvalidTransitionPathException, SelfLoopException, AmbiguousTransitionException
-
+from hysteron_tgraphs import exceptions
 State = Tuple[bool, ...]
 
 @dataclass(frozen=True)
@@ -38,7 +37,7 @@ class Transition():
             state = state[:i] + (1-state[i],) + state[i+1:]
             if state in visited:
                 if lamb < len(self.flipped):
-                    raise InvalidTransitionPathException("Transition cannot continue after looping.")
+                    raise exceptions.InvalidTransitionPathException("Transition cannot continue after looping.")
 
     def intermediate_state(self, lamb:int) -> State:
         """Get the lambda'th intermediate state for this transition.
@@ -233,7 +232,7 @@ class SwitchingFieldOrder():
         """Uses a transitive reduction algorithm (Aho et al., SIAM Journal of Computing, 1972) to get a minimal representation of the partial order.
 
         Raises:
-            Exception: Cannot construct transitive reduction for invalid partial order.
+            InvalidPartialOrderException: Cannot construct transitive reduction for invalid partial order.
             To avoid this error, check beforehand if the partial order is valid using self.valid. 
 
         Returns:
@@ -242,7 +241,8 @@ class SwitchingFieldOrder():
         """
         #
         if not self.valid:
-            raise Exception("Cannot construct transitive reduction for invalid partial order.")
+            raise exceptions.InvalidPartialOrderException(
+                "Cannot construct transitive reduction for invalid partial order.")
         
         transitive_reduction_matrix = self._matrix*(1-(np.matmul(self._matrix, self._matrix)))
         return {((stateA, i), (stateB, j)) for (stateA, i) in self._mapping for (stateB, j) in self._mapping if transitive_reduction_matrix[self._mapping[(stateA, i)], self._mapping[(stateB, j)]] == 1}
@@ -475,7 +475,7 @@ def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self 
                 diffs = [abs(switching_fields[state][i] - switching_fields[state0][k]) for i in unstable_hysterons]
                 kappa = unstable_hysterons[np.argmax(diffs)]
             else:
-                raise AmbiguousTransitionException(f"State {state} has race conditions"
+                raise exceptions.AmbiguousTransitionException(f"State {state} has race conditions"
                                                    + f"for {['up', 'down'][(1-direction)//2]} transition from state {state0}."
                                                    + f"Unstable hysterons: {unstable_hysterons}")
             flipped += (kappa,)
@@ -483,7 +483,7 @@ def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self 
             if state in transition_path:
                 if allow_self:
                     break
-                raise SelfLoopException(f"{['Up', 'Down'][(1-direction)//2]} transition from state {state0} is a self-loop.")
+                raise exceptions.SelfLoopException(f"{['Up', 'Down'][(1-direction)//2]} transition from state {state0} is a self-loop.")
             if state != state0 and np.isclose(critical_driving, switching_fields[state][kappa]):
                 raise Exception("")
             transition_path += [state]
@@ -517,7 +517,7 @@ def generate_general_solution(switching_field_order:SwitchingFieldOrder, a=1, b=
         b (int, optional): The value of the lowest switching field. Defaults to 1.
 
     Raises:
-        Exception: Not a valid partial order. This is raised if the input partial order is invalid.
+        InvalidPartialOrderException: Cannot generate solution for invalid partial order.
 
     Returns:
         SwitchingFields: A set of switching fields that follows the input partial order.
@@ -526,7 +526,7 @@ def generate_general_solution(switching_field_order:SwitchingFieldOrder, a=1, b=
 
     #Check that a solution exists
     if not switching_field_order.valid:
-        raise Exception("Not a valid partial order.")
+        raise exceptions.InvalidPartialOrderException("Cannot generate solution for invalid partial order.")
 
     #Produce a random linear extension.
     num_rows = switching_field_order._matrix.shape[0]

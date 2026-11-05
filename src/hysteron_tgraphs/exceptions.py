@@ -19,3 +19,10 @@ class AmbiguousTransitionException(Exception):
     Race conditions which concern both critical hysterons for a given state require more caution.
     See fig.4b in Teunisse & van Hecke, Royal Society Open Science 12(9), 2025.
     """
+
+class InvalidPartialOrderException(Exception):
+    """
+    Is raised when an operation cannot continue because SwitchingFieldOrder is not a valid partial order.
+    This is used purely for mathematical invalidity, as expressed by SwitchingFieldOrder.valid;
+    it should not be used for realizability in specific parametrizations.
+    """
