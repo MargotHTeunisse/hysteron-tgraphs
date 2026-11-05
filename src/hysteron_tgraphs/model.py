@@ -313,9 +313,6 @@ class Graph():
     def remove(self, state:State, direction:int):
         self._flipped[self._mapping[(state, direction)]] = None
 
-    def __eq__(self, other):
-        return all([self[state, direction] == other[state, direction] for (state, direction) in self._mapping])
-
     def __iter__(self):
         return ((state, direction) for (state, direction) in self._mapping if self[state, direction] != None)
 
