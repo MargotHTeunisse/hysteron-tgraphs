@@ -111,6 +111,64 @@ class TestTransition:
 
         assert direction == expected
 
+class TestScaffold:
+    def test_scaffolds_are_equal(self):
+        first_scaffold = Scaffold(2)
+        first_scaffold[(0, 0), 1] = 1
+
+        second_scaffold = Scaffold(2)
+        second_scaffold[(0, 0), 1] = 1
+
+        assert first_scaffold == second_scaffold
+
+    def test_scaffolds_are_not_equal(self):
+        first_scaffold = Scaffold(2)
+        first_scaffold[(0, 0), 1] = 0
+
+        second_scaffold = Scaffold(2)
+        second_scaffold[(0, 0), 1] = 1
+
+        assert first_scaffold != second_scaffold
+
+    def test_index_must_match_direction(self):
+        scaffold = Scaffold(0)
+
+        with pytest.RaisesExc(ValueError):
+            scaffold[(0,), -1] = 0
+
+    @pytest.mark.parametrize("state, direction, index, expected", [
+        ((0,), 1, 0, (1,)),
+        ((1,), -1, 0, (0,)),
+        ((0, 0, 1), 1, 1, (0, 1, 1))
+    ])
+    def test_can_obtain_landing_state(self, state:State, direction:int, index:int, expected:State):
+        scaffold = Scaffold(len(state))
+        scaffold[state, direction] = index
+
+        landing_state = scaffold.landing_state(state, direction)
+
+        assert landing_state == expected
+
+    def test_can_obtain_avalanche_free_graph_from_scaffold(self):
+        scaffold = Scaffold(2)
+        scaffold[(0, 0), 1] = 1
+        scaffold[(0, 1), 1] = 0
+        scaffold[(1, 1), -1] = 1
+        scaffold[(1, 0), -1] = 0
+        scaffold[(0, 1), -1] = 1
+        scaffold[(1, 0), 1] = 1
+
+        graph_from_scaffold = make_graph_from_scaffold(scaffold)
+
+        graph = Graph(2)
+        graph.add((0, 0), (1,))
+        graph.add((0, 1), (0,))
+        graph.add((1, 1), (1,))
+        graph.add((1, 0), (0,))
+        graph.add((0, 1), (1,))
+        graph.add((1, 0), (1,))
+        assert graph_from_scaffold == graph
+
 class TestGraph:
     def test_make_single_hysteron_graph(self):
         switching_fields = SwitchingFields(1)
@@ -340,3 +398,19 @@ class TestSwitchingFieldOrder:
         num_scaffolds = 4 # just the 'Preisach' scaffolds for 2 hysterons; more complex for 3+ hysterons
         expected = total_linear_extensions//num_scaffolds # analytical linear extension count
         assert linear_extension_count == expected
+
+class TestGeneralSolution:
+    def test_can_replicate_graph_using_general_solution(self):
+        graph = Graph(2)
+        graph.add((0, 0), (1, 0))
+        graph.add((0, 1), (1,))
+        graph.add((0, 1), (0, 1))
+        graph.add((1, 1), (1,))
+        graph.add((1, 0), (1,))
+        graph.add((1, 0), (0,))
+        switching_field_order: SwitchingFieldOrder = make_design_inequalities(graph)
+
+        general_solution: SwitchingFields = generate_general_solution(switching_field_order)
+
+        replicated_graph = make_graph(general_solution)
+        assert replicated_graph == graph
