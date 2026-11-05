@@ -182,6 +182,20 @@ class TestGraph:
 
         assert graph == check_graph
 
+    def test_identifies_graphs_for_different_num_hysterons_as_unequal(self):
+        one_hysteron_graph = Graph(1)
+        two_hysteron_graph = Graph(2)
+
+        assert one_hysteron_graph != two_hysteron_graph
+
+    def test_identifies_graph_with_different_transitions_as_unequal(self):
+        first_graph = Graph(1)
+        first_graph.add((0,), (0,))
+        second_graph = Graph(1)
+        second_graph.add((1,), (0,))
+
+        assert first_graph != second_graph
+
     def test_self_loop_raises_exception_by_default(self):
         switching_fields = SwitchingFields(1)
         switching_fields[(0,)] = (1,)
@@ -366,6 +380,18 @@ class TestSwitchingFieldOrder:
 
         assert switching_field_order.valid == False
 
+    @pytest.mark.parametrize("stateA,i,stateB,j", [
+        ((0,), 0, (1,), 0),
+        ((0, 0), 0, (0, 0), 1)
+    ])
+    def test_equality_and_inequality_give_contradiction(self, stateA:State, i:int, stateB:State, j:int):
+        switching_field_order = SwitchingFieldOrder(len(stateA))
+        switching_field_order.add(stateA, i, stateB, j)
+
+        switching_field_order.equate(stateA, i, stateB, j)
+
+        assert switching_field_order.valid == False
+
     @pytest.mark.parametrize("num_hysts", [1, 2])
     def test_total_linear_extensions_is_factorial(self, num_hysts:int):
         """
@@ -438,6 +464,20 @@ class TestSwitchingFieldOrder:
         open_entries = switching_field_order.open_entries
 
         assert open_entries == expected
+
+    @pytest.mark.parametrize("num_hysts, expected", [
+        (1, set()),
+        (2, {(((0, 0), 0), ((0, 0), 1))}), 
+        (3, {(((0, 0, 0), 0), ((0, 0, 0), 2)), (((0, 0, 0), 1), ((0, 0, 0), 2)),
+             (((0, 0, 1), 0), ((0, 0, 1), 1))})
+    ])
+    def test_symmetry_restriction(self, num_hysts:int, expected:Set[Tuple[Tuple[State, int]]]):
+        switching_field_order = SwitchingFieldOrder(num_hysts)
+
+        switching_field_order.enforce_symmetry_restriction()
+
+        inequalities = switching_field_order.get_transitive_reduction()
+        assert inequalities == expected
 
 class TestGeneralSolution:
     def test_can_replicate_graph_using_general_solution(self):
