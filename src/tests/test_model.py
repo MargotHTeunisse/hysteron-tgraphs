@@ -425,6 +425,20 @@ class TestSwitchingFieldOrder:
         expected = {(((0, 0), 0), ((1, 0), 0)), (((0, 0), 1), ((0, 1), 1))}
         assert combined_inequalities == expected
 
+    @pytest.mark.parametrize("filled,expected", [
+        ({}, {(((0,), 0), ((1,), 0)), (((1,), 0), ((0,), 0))}),
+        ({(((0,), 0), ((1,), 0))}, set())
+    ])
+    def test_can_identify_open_entries(self, filled:Set[Tuple[Tuple[State, int]]],
+                                       expected:Set[Tuple[Tuple[State, int]]]):
+        switching_field_order = SwitchingFieldOrder(1)
+        for ((stateA, i), (stateB, j)) in filled:
+            switching_field_order.add(stateA, i, stateB, j)
+
+        open_entries = switching_field_order.open_entries
+
+        assert open_entries == expected
+
 class TestGeneralSolution:
     def test_can_replicate_graph_using_general_solution(self):
         graph = Graph(2)
