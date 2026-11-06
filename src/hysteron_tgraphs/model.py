@@ -444,7 +444,7 @@ def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self 
     Raises:
         AmbiguousTransitionException: To prevent this error, set resolve_race to True.
         SelfLoopException: To prevent this error, set allow_self to True.
-        Exception: Ill-defined transition: marginal avalanche. 
+        MarginalSwitchingFieldsException: cannot determine avalanche because switching fields are marginal. 
         This is raised if, at some point in an avalanche, there is a degeneracy in the critical hysterons.
         This degeneracy cannot be resolved by this code; instead, please check the input switching fields.
 
@@ -455,37 +455,79 @@ def make_graph(switching_fields:SwitchingFields, resolve_race=False, allow_self 
 
     scaffold = switching_fields.scaffold(exclude)
     iterator = ((state, direction) for (state, direction) in scaffold if not (state, direction) in exclude)
-    for (state, direction) in scaffold:
+    for (state, direction) in iterator:
         state0 = state
         flipped = tuple()
         transition_path = [state0,]
 
-        k = scaffold[(state0, direction)]
-        critical_driving = switching_fields[state0][k]
+        kappa = scaffold[(state0, direction)]
+        critical_driving = switching_fields[state0][kappa]
 
-        unstable_hysterons = (k,)
-
-        while len(unstable_hysterons) > 0:
-            if not len(unstable_hysterons) > 1:
-                kappa = unstable_hysterons[0]
-            elif resolve_race:
-                diffs = [abs(switching_fields[state][i] - switching_fields[state0][k]) for i in unstable_hysterons]
-                kappa = unstable_hysterons[np.argmax(diffs)]
-            else:
-                raise exceptions.AmbiguousTransitionException(f"State {state} has race conditions"
-                                                   + f"for {['up', 'down'][(1-direction)//2]} transition from state {state0}."
-                                                   + f"Unstable hysterons: {unstable_hysterons}")
+        while True:
             flipped += (kappa,)
             state = flip_state(state, kappa)
+
+            # Before anything else, check if the transition path forms a self-loop.
             if state in transition_path:
                 if allow_self:
                     break
-                raise exceptions.SelfLoopException(f"{['Up', 'Down'][(1-direction)//2]} transition from state {state0} is a self-loop.")
-            if state != state0 and np.isclose(critical_driving, switching_fields[state][kappa]):
-                raise Exception("")
+                raise exceptions.SelfLoopException(
+                    f"{['Up', 'Down'][(1-direction)//2]} transition from state {state0} is a self-loop.")
             transition_path += [state]
 
-            unstable_hysterons = tuple(i for i, val in enumerate(switching_fields[state]) if (state[i] == 0 and val < critical_driving) or (state[i] == 1 and val > critical_driving))
+            # Now check for avalanches, starting from the critical hysterons at the landing state.
+            kappa_up = scaffold[(state, 1)] if 0 in state else None
+            kappa_down = scaffold[((state, -1))] if 1 in state else None
+            critical_up_field = switching_fields[state][kappa_up] if kappa_up != None else np.inf
+            critical_down_field = switching_fields[state][kappa_down] if kappa_down != None else -np.inf
+
+            # If both critical hysterons are stable, the transition terminates.
+            if critical_up_field >= critical_driving and critical_down_field <= critical_driving:
+                if (np.isclose(critical_up_field, critical_driving)
+                    or np.isclose(critical_down_field, critical_driving)):
+                # Check for marginal stability; we should avoid this.
+                    raise exceptions.MarginalSwitchingFieldsException(
+                        f"Cannot construct  {['up', 'down'][(1-direction)//2]} transition "
+                        + f"from state {state0} " 
+                        + f"due to marginal stability of state {state}.")
+                break
+
+            # We now know that at least one hysteron is unstable. 
+            # The following steps depend on whether we resolve race conditions or not.
+            if resolve_race:
+                # If race conditions are resolved, we only need to worry about the critical hysterons.
+                # First, check for the case where only the critical up hysteron is unstable.
+                if critical_down_field < critical_driving:
+                    kappa = kappa_up      
+
+                # Now check for the case where only the critical down hysteron is unstable.
+                elif critical_up_field > critical_driving:
+                    kappa = kappa_down
+
+                # If none of the conditions apply, then both critical hysterons are unstable.
+                # We enforce that the hysteron which is furthest from stability should flip.
+                else:
+                    diff_up = critical_driving - critical_up_field
+                    diff_down = critical_down_field - critical_driving
+                    kappa = (kappa_up if diff_up > diff_down else kappa_down)
+
+            else:
+                # If we do not resolve race conditions, then only a single hysteron can be unstable.
+                unstable_hysterons = [i for (i, val) in enumerate(switching_fields[state])
+                                        if state[i] == 0 and val < critical_driving
+                                        or state[i] == 1 and val > critical_driving]
+                if len(unstable_hysterons) > 1:
+                        raise exceptions.AmbiguousTransitionException(
+                            f"Cannot construct {['up', 'down'][(1-direction)//2]} avalanche from state {state0} "
+                            + f"because multiple hysterons in state {state} are unstable. " 
+                            + f"Unstable hysterons: {unstable_hysterons}")
+                kappa = unstable_hysterons[0]
+
+            #Having determined that hysteron kappa should flip, check that it is not marginally unstable.
+            if np.isclose(switching_fields[state][kappa], critical_driving):
+                raise exceptions.MarginalSwitchingFieldsException(
+                    f"Cannot construct {['up', 'down'][(1-direction)//2]} transition from state {state0} "
+                    f"due to marginal instability of hysteron {kappa} at state {state}.")
         
         graph.add(state0, flipped)
 

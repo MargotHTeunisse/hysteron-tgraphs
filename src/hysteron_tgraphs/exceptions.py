@@ -26,3 +26,10 @@ class InvalidPartialOrderException(Exception):
     This is used purely for mathematical invalidity, as expressed by SwitchingFieldOrder.valid;
     it should not be used for realizability in specific parametrizations.
     """
+
+class MarginalSwitchingFieldsException(Exception):
+    """
+    Is raised when switching fields are too close together for their order to be accurately determined.
+    This applies when switching fields are exactly equal, but might also apply when the difference is sufficiently small,
+    depending on the system. 
+    """

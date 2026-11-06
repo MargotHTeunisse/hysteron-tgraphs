@@ -222,9 +222,9 @@ class TestGraph:
         """
         switching_fields = SwitchingFields(2)
         switching_fields[(0, 0)] = (2, 1)
-        switching_fields[(0, 1)] = (0, -1)
-        switching_fields[(1, 1)] = (-2, 1)
-        switching_fields[(1, 0)] = (0, 3)
+        switching_fields[(0, 1)] = (-2, -3)
+        switching_fields[(1, 1)] = (-7, 0)
+        switching_fields[(1, 0)] = (-3, 4)
         graph = make_graph(switching_fields)
 
         check_graph = Graph(2)
@@ -240,9 +240,9 @@ class TestGraph:
     def test_race_conditions_raise_exception_by_default(self):
         switching_fields = SwitchingFields(2)
         switching_fields[(0, 0)] = (2, 1)
-        switching_fields[(0, 1)] = (-1, 2)
-        switching_fields[(1, 1)] = (-2, 1)
-        switching_fields[(1, 0)] = (0, 3)
+        switching_fields[(0, 1)] = (-2, 3)
+        switching_fields[(1, 1)] = (-3, 0)
+        switching_fields[(1, 0)] = (-1, 4)
 
         with pytest.RaisesExc(AmbiguousTransitionException) as e:
             make_graph(switching_fields, allow_self=True)
@@ -250,9 +250,9 @@ class TestGraph:
     def test_resolve_race_conds_via_most_unstable_hysteron(self):
         switching_fields = SwitchingFields(2)
         switching_fields[(0, 0)] = (2, 1)
-        switching_fields[(0, 1)] = (-1, 2)
-        switching_fields[(1, 1)] = (-2, 1)
-        switching_fields[(1, 0)] = (0, 3)
+        switching_fields[(0, 1)] = (-2, 3)
+        switching_fields[(1, 1)] = (-3, 0)
+        switching_fields[(1, 0)] = (-1, 4)
         graph = make_graph(switching_fields, allow_self=True, resolve_race=True)
 
         check_graph = Graph(2)
@@ -264,6 +264,38 @@ class TestGraph:
         check_graph.add((1, 0), (1,))
 
         assert graph == check_graph
+
+    def test_cannot_construct_single_hysteron_graph_for_spin(self):
+        switching_fields = SwitchingFields(1)
+        switching_fields[(0,)] = (1,)
+        switching_fields[(1,)] = (1,)
+
+        with pytest.RaisesExc(MarginalSwitchingFieldsException) as e:
+            make_graph(switching_fields)
+
+    def test_cannot_construct_marginally_stable_transition(self):
+        switching_fields = SwitchingFields(2)
+        # This gives a marginally stable transition (00) -> (01).
+        switching_fields[(0, 0)] = (2, 1)
+        switching_fields[(0, 1)] = (1, 0)
+        switching_fields[(1, 1)] = (-1, 0)
+        switching_fields[(1, 0)] = (-1, 1)
+
+        with pytest.RaisesExc(MarginalSwitchingFieldsException) as e:
+            make_graph(switching_fields)
+
+    def test_cannot_construct_marginal_avalanche(self):
+        switching_fields = SwitchingFields(2)
+        # This gives a marginal avalanche (00) -> (01) -> (11).
+        switching_fields[(0, 0)] = (2, 1)
+        switching_fields[(0, 1)] = (1-1e-5, 0)
+        switching_fields[(1, 1)] = (-1, 0)
+        switching_fields[(1, 0)] = (-1, 1)
+
+        with pytest.RaisesExc(MarginalSwitchingFieldsException) as e:
+            make_graph(switching_fields)
+
+
 
 class TestSwitchingFieldOrder:
     def test_valid_graph(self):
