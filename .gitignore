@@ -19,3 +19,6 @@ figs/*
 *.pyc
 __pycache__
 .coverage
+
+#IDE files
+.idea
