@@ -136,6 +136,26 @@ class TestScaffold:
         with pytest.RaisesExc(ValueError):
             scaffold[(0,), -1] = 0
 
+    def test_scaffold_cannot_be_constructed_for_marginal_up_switching_fields(self):
+        switching_fields = SwitchingFields(2)
+        switching_fields[0, 0] = (3, 3)
+        switching_fields[0, 1] = (3, 1)
+        switching_fields[1, 0] = (2, 3)
+        switching_fields[1, 1] = (2, 1)
+
+        with pytest.RaisesExc(MarginalSwitchingFieldsException) as e:
+            switching_fields.scaffold()
+
+    def test_scaffold_cannot_be_constructed_for_marginal_down_switching_fields(self):
+        switching_fields = SwitchingFields(2)
+        switching_fields[0, 0] = (4, 3)
+        switching_fields[0, 1] = (4, 2)
+        switching_fields[1, 0] = (2, 3)
+        switching_fields[1, 1] = (2, 2)
+
+        with pytest.RaisesExc(MarginalSwitchingFieldsException) as e:
+            switching_fields.scaffold()
+
     @pytest.mark.parametrize("state, direction, index, expected", [
         ((0,), 1, 0, (1,)),
         ((1,), -1, 0, (0,)),
@@ -180,6 +200,15 @@ class TestGraph:
         check_graph.add((0,), (0,))
         check_graph.add((1,), (0,))
 
+        assert graph == check_graph
+
+    def test_transition_removal(self):
+        graph = Graph(1)
+        graph.add((0,), (0,))
+
+        graph.remove((0,), 1)
+
+        check_graph = Graph(1)
         assert graph == check_graph
 
     def test_identifies_graphs_for_different_num_hysterons_as_unequal(self):
@@ -357,6 +386,15 @@ class TestSwitchingFieldOrder:
         with pytest.RaisesExc(InvalidPartialOrderException) as e:
             switching_field_order.get_transitive_reduction()
 
+    def test_can_obtain_number_of_inequalities_in_transitive_closure(self):
+        switching_field_order = SwitchingFieldOrder(2)
+        switching_field_order.add((0, 0), 0, (0, 0), 1)
+        switching_field_order.add((0, 0), 1, (0, 1), 1)
+
+        num_ineqs = switching_field_order.num_ineqs
+
+        assert num_ineqs == 3
+
 
     def test_valid_self_loop(self):
         """
@@ -510,6 +548,22 @@ class TestSwitchingFieldOrder:
 
         inequalities = switching_field_order.get_transitive_reduction()
         assert inequalities == expected
+
+    @pytest.mark.parametrize("stateA, i, stateB, j, expected", [
+        ((0, 0), 0, (0, 0), 1, [1, -1, 0, 0, 0, 0, 0, 0]),
+        ((1, 0), 1, (0, 1), 0, [0, 0, -1, 0, 0, 1, 0, 0])
+    ])
+    def test_can_convert_to_coefficients_for_single_inequality(self, 
+                                                               stateA:State, i:int,
+                                                               stateB:State, j:int,
+                                                               expected:List[int]):
+        switching_field_order = SwitchingFieldOrder(2)
+        switching_field_order.add(stateA, i, stateB, j)
+
+        coeffs = switching_field_order.to_coeffs()
+
+        assert all([actual_coeff == expected_coeff for actual_coeff, expected_coeff 
+                    in zip(coeffs[0], expected)])
 
 class TestGeneralSolution:
     def test_can_replicate_graph_using_general_solution(self):

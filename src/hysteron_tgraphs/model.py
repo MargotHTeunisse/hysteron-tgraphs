@@ -165,13 +165,13 @@ class SwitchingFields():
                 I0 = set(i for i, s in enumerate(state) if s == 0)
                 k = np.argmin([self[state][i] if s == 0 else np.inf for i, s in enumerate(state)])
                 if any(np.isclose(self[state][k], [self[state][i] for i in I0-{k}])):
-                    raise Exception("Marginal scaffold.")
+                    raise exceptions.MarginalSwitchingFieldsException("Marginal scaffold.")
                 scaffold[(state, 1)] = k
             if 1 in state and not (state, -1) in exclude:
                 I1 = set(i for i, s in enumerate(state) if s == 1)
                 k = np.argmax([self[state][i] if s == 1 else -np.inf for i, s in enumerate(state)])
                 if any(np.isclose(self[state][k], [self[state][i] for i in I1-{k}])):
-                    raise Exception("Marginal scaffold.")
+                    raise exceptions.MarginalSwitchingFieldsException("Marginal scaffold.")
                 scaffold[(state, -1)] = k
         return scaffold
 
