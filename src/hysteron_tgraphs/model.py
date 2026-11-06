@@ -287,9 +287,7 @@ class SwitchingFieldOrder():
         return np.all(self._matrix[np.identity(self._matrix.shape[0], dtype=bool)] == 0)
         
     def __iadd__(self, other):
-        if self.num_hysts != other.num_hysts:
-            raise ValueError("Numbers of hysterons in partial orders must match.")
-        elif self._mapping != other._mapping:
+        if self._mapping != other._mapping:
             raise ValueError("Switching field mappings must match.")
         self._matrix = np.logical_or(self._matrix, other._matrix)
         self._apply_transitive_closure()
