@@ -1,5 +1,6 @@
 from hysteron_tgraphs.model import *
 import networkx as nx
+import copy
 
 """This module is separated because it depends on the networkx package.
 Currently it is only used to remove Garden-of-Eden states. 
