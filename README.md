@@ -2,9 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16920053.svg)](https://doi.org/10.5281/zenodo.16920053)
 
-[![pip build CI](https://github.com/MargotHTeunisse/hysteron-tgraphs/actions/workflows/python-package-pip.yml/badge.svg)](https://github.com/MargotHTeunisse/hysteron-tgraphs/actions/workflows/python-package-pip.yml)
-
-[![uv build CI](https://github.com/MargotHTeunisse/hysteron-tgraphs/actions/workflows/python-package-uv.yml/badge.svg)](https://github.com/MargotHTeunisse/hysteron-tgraphs/actions/workflows/python-package-uv.yml)
+[![Python package CI](https://github.com/MargotHTeunisse/hysteron-tgraphs/actions/workflows/python-package.yml/badge.svg)](https://github.com/MargotHTeunisse/hysteron-tgraphs/actions/workflows/python-package.yml)
 
 The code in this repository was published in conjunction with the article "Transition Graphs of Interacting Hysterons: Structure, Design, Organisation and Statistics" by Margot H. Teunisse and Martin van Hecke for Royal Society Open Science (2025). 
 
