@@ -173,7 +173,7 @@ def count_scaffolds(num_hysts:int) -> int:
     return int(np.prod([magnetisation**scipy.special.binom(num_hysts, magnetisation) for magnetisation in range(1, num_hysts+1)])**2/math.factorial(num_hysts))
 
 def count_candidate_graphs(avalanche_forest:AvalancheForest)-> int:
-    return np.product([len(avalanche_forest[(state, direction)]) for (state, direction) in avalanche_forest], dtype=np.int64)
+    return np.prod([len(avalanche_forest[(state, direction)]) for (state, direction) in avalanche_forest], dtype=np.int64)
 
 def make_all_candidate_graphs(num_hysts:int, model:str='general') -> Iterator[Graph]:
     for scaffold in make_all_scaffolds(num_hysts):
