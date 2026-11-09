@@ -193,14 +193,16 @@ class TestGraphGeneration:
         assert candidate_graph_counter == 8
 
     @pytest.mark.parametrize("num_hysts", [1, 2, 3, 4, 5])
-    def test_can_produce_single_graph(self, num_hysts:int):
+    def test_produces_consistent_graph(self, num_hysts:int):
         """
-        Check that a complete (random) candidate graph can be produced for a given number of hysterons.
+        Check that a single graph can be produced which has a complete and consistent scaffold.
         """ 
         states: Iterator[State] = itertools.product([0, 1], repeat=num_hysts)
         keys = [(state, 1) for state in states if 0 in state] \
                 + [(state, -1) for state in states if 1 in state]
 
+        # The generated graph is random, but the outcome of this test should not be.
         graph = candidategraphs.make_random_graph(num_hysts)
 
-        assert all([graph[(state, direction)] != None for (state, direction) in keys])
+        scaffold = graph.scaffold
+        assert all([scaffold[(state, direction)] != None for (state, direction) in keys])

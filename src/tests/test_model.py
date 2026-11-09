@@ -324,7 +324,16 @@ class TestGraph:
         with pytest.RaisesExc(MarginalSwitchingFieldsException) as e:
             make_graph(switching_fields)
 
+    def test_cannot_produce_scaffold_if_inconsistent(self):
+        """
+        Check that a graph will not produce a scaffold if the scaffold is inconsistent.
+        """
+        graph = Graph(2)
+        graph.add((0, 0), (1,)) # requires second hysteron to flip up from (0,0)
+        graph.add((0, 1), (1, 0)) #requires first hysteron to flip up from (0, 0)
 
+        with pytest.RaisesExc(exceptions.InconsistentScaffoldException) as e:
+            graph.scaffold
 
 class TestSwitchingFieldOrder:
     def test_valid_graph(self):
@@ -339,6 +348,24 @@ class TestSwitchingFieldOrder:
         switching_field_order = make_design_inequalities(graph)
     
         assert switching_field_order.valid
+
+    def test_can_construct_full_initial_inequalities_from_scaffold(self):
+        """
+        Check that full initial inequalities (scaffold + initial stability) can be obtained for a given scaffold.
+        """
+        scaffold = Scaffold(2)
+        scaffold[(0, 0), 1] = 1
+        scaffold[(0, 1), 1] = 0
+        scaffold[(1, 0), -1] = 0
+
+        initial_inequalities: SwitchingFieldOrder = make_initial_inequalities(scaffold, stable=True)
+
+        expected = {
+            (((0, 0), 0), ((0, 0), 1)),
+            (((0, 1), 0), ((0, 1), 1)),
+            (((1, 0), 1), ((1, 0), 0))
+        }
+        assert initial_inequalities.get_transitive_reduction() == expected
 
     def test_transitive_closure_for_single_transition(self):
         """
