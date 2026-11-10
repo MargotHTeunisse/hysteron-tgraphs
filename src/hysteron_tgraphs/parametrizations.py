@@ -105,7 +105,9 @@ class PairwiseAdditiveGlobal(Parametrization):
     #Parametrization for 'global' coupling, where c_ij = c_j. 
     def __init__(self, num_hysts:int):
         self.num_hysts = num_hysts
-        self.variables = ['u_{}^+'.format(i+1) for i in range(num_hysts)] + ['u_{}^-'.format(i+1) for i in range(num_hysts)] + ['c_{}'.format(j+1) for j in range(num_hysts)]
+        self.variables = ['u_{}^+'.format(i+1) for i in range(num_hysts)]  + ['u_{}^-'.format(i+1) for i in range(num_hysts)]
+        if num_hysts > 1:
+            self.variables += ['c_{}'.format(j+1) for j in range(num_hysts)]
 
     def transform(self, state:State, i:int) -> Dict[str, np.float64]:
         coeffs = {var:0 for var in self.variables}
