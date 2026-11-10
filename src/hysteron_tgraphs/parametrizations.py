@@ -50,6 +50,36 @@ class PairwiseAdditive(Parametrization):
         coeffs.update({'c_{}{}'.format(i+1, k+1): -state[k] for k in range(self.num_hysts) if k != i})
         return coeffs
 
+    def generate_constraints_ferro(self) -> Constraints:
+        constraints = Constraints(self.variables)
+
+        # Enforce c_ij > 0 for all coupling coefficients.
+        for var in self.variables:
+            if var.startswith('c'):
+                constraints.add_inequality({var:1})
+
+        return constraints
+
+    def generate_constraints_antiferro(self) -> Constraints:
+        constraints = Constraints(self.variables)
+
+        # Enforce c_ij < 0 for all coupling coefficients.
+        for var in self.variables:
+            if var.startswith('c'):
+                constraints.add_inequality({var:-1})
+
+        return constraints
+
+    def generate_constraints_preisach(self) -> Constraints:
+        constraints = Constraints(self.variables)
+
+        # Enforce c_ij = 0 for all coupling coefficients.
+        for var in self.variables:
+            if var.startswith('c'):
+                constraints.add_equality({var: 1}, 0)
+
+        return constraints
+
     def solve(self, inequalities:Inequalities, constraints:Constraints=None) -> Solution:
         #Find Chebyshev center.
         if constraints == None:
