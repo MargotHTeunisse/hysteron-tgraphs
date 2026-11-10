@@ -1,10 +1,10 @@
-from hysteron_tgraphs.model import *
-from hysteron_tgraphs.graph_analysis import remove_goe, convert_graph_to_networkx
-
-import networkx as nx
-import copy
-
 import pytest
+graph_analysis = pytest.importorskip("hysteron_tgraphs.graph_analysis",
+                                reason="Cannot import optional graph-analysis module; skipping tests.")
+
+from hysteron_tgraphs.model import *
+
+import copy
 
 @pytest.mark.parametrize("state0, flipped", [
     ((0,), (0,)),
@@ -18,12 +18,13 @@ class TestNetworkXConversion:
     """
     Check for various transitions that they are correctly converted to a NetworkX edge.
     """
+
     def test_networkx_edge_has_transition_length(self, state0:State, flipped:Tuple[int]):
         graph = Graph(len(state0))
         graph.add(state0, flipped)
         transition = Transition(state0, flipped)
 
-        networkx_graph = convert_graph_to_networkx(graph)
+        networkx_graph = graph_analysis.convert_graph_to_networkx(graph)
 
         assert networkx_graph.edges[state0, transition.final_state, 0]['transition_length'] == transition.length
 
@@ -32,7 +33,7 @@ class TestNetworkXConversion:
         graph.add(state0, flipped)
         transition = Transition(state0, flipped)
 
-        networkx_graph = convert_graph_to_networkx(graph)
+        networkx_graph = graph_analysis.convert_graph_to_networkx(graph)
 
         assert networkx_graph.edges[state0, transition.final_state, 0]['direction'] == transition.direction
     
@@ -42,7 +43,7 @@ class TestNetworkXConversion:
         graph.add(state0, flipped)
         transition = Transition(state0, flipped)
 
-        networkx_graph = convert_graph_to_networkx(graph)
+        networkx_graph = graph_analysis.convert_graph_to_networkx(graph)
 
         assert networkx_graph.edges[state0, transition.final_state, 0]['flipped'] == flipped
 
@@ -62,7 +63,7 @@ class TestGardenOfEdenStateRemoval:
         graph.add((1, 0), (0,))
         graph.add((1, 0), (1,))
 
-        reduced_graph = remove_goe(graph)
+        reduced_graph = graph_analysis.remove_goe(graph)
 
         assert reduced_graph == expected
 
@@ -81,6 +82,6 @@ class TestGardenOfEdenStateRemoval:
         graph.add((1, 0), (0,))
         graph.add((1, 0), (1,))
 
-        reduced_graph = remove_goe(graph)
+        reduced_graph = graph_analysis.remove_goe(graph)
 
         assert reduced_graph == expected
