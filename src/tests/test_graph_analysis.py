@@ -1,10 +1,13 @@
+import importlib
+
+import pytest
+pytestmark = pytest.mark.skipif(not importlib.util.find_spec("networkx"),
+                                reason="NetworkX is not installed.")
+
 from hysteron_tgraphs.model import *
 from hysteron_tgraphs.graph_analysis import remove_goe, convert_graph_to_networkx
 
-import networkx as nx
 import copy
-
-import pytest
 
 @pytest.mark.parametrize("state0, flipped", [
     ((0,), (0,)),
