@@ -18,8 +18,8 @@ To make integration with my original code easier, I have the following recommend
 
 - The **candidategraphs** module is intended to hold algorithms for graph generation, but only those which build directly on **model**. More complex algorithms, especially those which use external dependencies, should not be in this module. If possible, split the candidate graph generation from realizability concerns. 
 
-- I've constructed the **parametrizations** module in such a way that you can construct a custom parametrization for the switching thresholds $U_i^\pm(S)$: for example, $U_i^\pm(S) = u_i^\pm - \sum_j c_{ij}s_j$, with custom constraints. I encourage you to take a look at this!
+- I've constructed the **parametrizations** module in such a way that you can construct a custom parametrization for the switching thresholds $U_i^\pm(S)$: for example, $U_i^\pm(S) = u_i^\pm - \sum_j c_{ij}s_j$, with custom constraints. I encourage you to try this out! You can look at **test_parametrizations** to get an idea of how the ```Parametrization``` and ```Constraint``` classes are used.
 
-- For the other modules I'm quite flexible, as I consider them optional. If you implement new features, I'd recommend adding these to **graph-analysis** if they apply to graphs, or **polyhedron-analysis** if they apply to the design space. If neither of these is appropriate, feel free to create a new module. 
+- For the other modules I'm quite flexible, as I consider them optional. If you implement new features, I'd recommend adding these to **graph-analysis** if NetworkX functions are used, or **polyhedron-analysis** for analysis in polyhedrons in design space. If neither of these is appropriate, feel free to create a new module. 
 
 
