@@ -48,7 +48,7 @@ Currently only used to remove Garden-of-Eden states. Requires NetworkX >= 3.3.
 
 **polyhedron-analysis**
 
-***Not recommended for most use cases.*** Calculates the probability of a transition graph by calculating the volume of the corresponding polyhedron. Uses Pycddlib 2.1.8.post1. 
+***Not recommended for most use cases.*** Calculates the probability of a transition graph by calculating the volume of the corresponding polyhedron. Currently this is only tested for pycddlib 2.1.8.post1 and Python 3.12; needs updating to pycddlib 3.x.x before more recent Python versions can be supported.
 
 
 # Contact Information
