@@ -27,6 +27,11 @@ class InvalidPartialOrderException(Exception):
     it should not be used for realizability in specific parametrizations.
     """
 
+class InconsistentScaffoldException(Exception):
+    """
+    Is raised when a consistent scaffold cannot be produced for a graph.
+    """
+
 class MarginalSwitchingFieldsException(Exception):
     """
     Is raised when switching fields are too close together for their order to be accurately determined.

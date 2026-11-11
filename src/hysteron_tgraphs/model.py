@@ -331,9 +331,17 @@ class Graph():
     @property
     def scaffold(self) -> Scaffold:
         scaffold = Scaffold(self.num_hysts)
-        for (state, direction) in self:
-            flipped = self._flipped[self._mapping[(state, direction)]]
-            scaffold[(state, direction)] = flipped[0]
+        for (state0, direction) in self:
+            transition: Transition = self[(state0, direction)]
+            state = state0
+            for kappa in transition.flipped:
+                key = (state, 1-2*state[kappa])
+                if scaffold[key] == None:
+                    scaffold[key] = kappa
+                elif scaffold[key] != kappa:
+                    raise exceptions.InconsistentScaffoldException(
+                        "Scaffold is inconsistent for given graph.")
+                state = flip_state(state, kappa)
         return scaffold
 
 def flip_state(state:State, index:int) -> State:
@@ -386,13 +394,21 @@ def make_design_inequalities(graph:Graph, resolve_race = False) -> SwitchingFiel
     Returns:
         SwitchingFieldOrder: The design inequalities of the target t-graph in the most general model.
     """    
-    switching_field_order = make_initial_inequalities(graph.scaffold, stable=True)
+    # Scaffold inequalities
+    switching_field_order = make_initial_inequalities(graph.scaffold, stable=False)
     
     for (state, direction) in graph:
         transition = graph[(state, direction)]
 
         stateA = transition.state
         k = transition.critical_hysteron
+
+        # Initial stability inequalities
+        for i in range(transition.num_hysts):
+            if stateA[k] == 0 and stateA[i] == 1:
+                switching_field_order.add(stateA, k, stateA, i)
+            if stateA[k] == 1 and stateA[i] == 0:
+                switching_field_order.add(stateA, i, stateA, k)
             
         #Intermediate stability inequalities
         for lamb in range(1, transition.length):
