@@ -42,7 +42,6 @@ jobs:
         pytest
 
   pip-polyhedron-analysis:
-    needs: pip-build
     name: pip with polyhedron-analysis
     runs-on: windows-latest
     strategy:
