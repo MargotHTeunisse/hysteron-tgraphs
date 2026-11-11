@@ -50,6 +50,36 @@ class PairwiseAdditive(Parametrization):
         coeffs.update({'c_{}{}'.format(i+1, k+1): -state[k] for k in range(self.num_hysts) if k != i})
         return coeffs
 
+    def generate_constraints_ferro(self) -> Constraints:
+        constraints = Constraints(self.variables)
+
+        # Enforce c_ij > 0 for all coupling coefficients.
+        for var in self.variables:
+            if var.startswith('c'):
+                constraints.add_inequality({var:1})
+
+        return constraints
+
+    def generate_constraints_antiferro(self) -> Constraints:
+        constraints = Constraints(self.variables)
+
+        # Enforce c_ij < 0 for all coupling coefficients.
+        for var in self.variables:
+            if var.startswith('c'):
+                constraints.add_inequality({var:-1})
+
+        return constraints
+
+    def generate_constraints_preisach(self) -> Constraints:
+        constraints = Constraints(self.variables)
+
+        # Enforce c_ij = 0 for all coupling coefficients.
+        for var in self.variables:
+            if var.startswith('c'):
+                constraints.add_equality({var: 1}, 0)
+
+        return constraints
+
     def solve(self, inequalities:Inequalities, constraints:Constraints=None) -> Solution:
         #Find Chebyshev center.
         if constraints == None:
@@ -75,7 +105,9 @@ class PairwiseAdditiveGlobal(Parametrization):
     #Parametrization for 'global' coupling, where c_ij = c_j. 
     def __init__(self, num_hysts:int):
         self.num_hysts = num_hysts
-        self.variables = ['u_{}^+'.format(i+1) for i in range(num_hysts)] + ['u_{}^-'.format(i+1) for i in range(num_hysts)] + ['c_{}'.format(j+1) for j in range(num_hysts)]
+        self.variables = ['u_{}^+'.format(i+1) for i in range(num_hysts)]  + ['u_{}^-'.format(i+1) for i in range(num_hysts)]
+        if num_hysts > 1:
+            self.variables += ['c_{}'.format(j+1) for j in range(num_hysts)]
 
     def transform(self, state:State, i:int) -> Dict[str, np.float64]:
         coeffs = {var:0 for var in self.variables}
