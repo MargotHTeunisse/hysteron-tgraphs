@@ -5,6 +5,7 @@ polyhedron_analysis = pytest.importorskip("hysteron_tgraphs.polyhedron_analysis"
 from hysteron_tgraphs.model import *
 
 import numpy as np
+import math
 
 class TestPolyhedronAnalysis:
     @pytest.mark.parametrize("stateA, i, stateB, j", [
@@ -41,3 +42,24 @@ class TestPolyhedronAnalysis:
         volume: float = polyhedron_analysis.calculate_polyhedron_volume(switching_field_order)
 
         assert np.isclose(volume, 0.125)
+
+    def test_volume_matches_value_from_linear_extension_counting(self):
+        """
+        Check that volume is correct for actual design inequalities by comparing against linear extension count.
+        """
+        graph = Graph(2)
+        graph.add((0, 0), (1, 0))
+        graph.add((0, 1), (0, 1))
+        graph.add((0, 1), (1,))
+        graph.add((1, 1), (1,))
+        graph.add((1, 0), (0,))
+        graph.add((1, 0), (1,))
+        switching_field_order = make_design_inequalities(graph)
+
+        volume: float = polyhedron_analysis.calculate_polyhedron_volume(switching_field_order)
+
+        # Calculate volume from linear extensions for comparison; these two volumes should be the same.
+        linear_extension_count = count_linear_extensions(switching_field_order)
+        total_linear_extensions = math.factorial(8)
+        volume_from_linear_extensions = linear_extension_count / total_linear_extensions
+        assert np.isclose(volume, volume_from_linear_extensions)
